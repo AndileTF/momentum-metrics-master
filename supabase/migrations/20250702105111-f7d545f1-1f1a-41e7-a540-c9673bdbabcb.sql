@@ -1,0 +1,55 @@
+-- Insert mock data for Daily Stats table
+INSERT INTO "Daily Stats" (
+  "Agent", 
+  "Date", 
+  "Helpdesk ticketing", 
+  "Calls", 
+  "Live Chat", 
+  "Total Issues handled",
+  "Email",
+  "Support/DNS Emails",
+  "Social Tickets",
+  "Billing Tickets",
+  "Walk-Ins"
+) VALUES 
+-- Today's data
+('Sarah Johnson', '2025-01-02', 25, 45, 18, 88, 'sarah.johnson@liquid.tech', '12', '8', '15', '5'),
+('Michael Chen', '2025-01-02', 30, 42, 22, 94, 'michael.chen@liquid.tech', '15', '10', '12', '4'),
+('Jessica Williams', '2025-01-02', 28, 38, 20, 86, 'jessica.williams@liquid.tech', '10', '12', '18', '6'),
+('David Rodriguez', '2025-01-02', 22, 35, 15, 72, 'david.rodriguez@liquid.tech', '8', '9', '14', '3'),
+('Emily Thompson', '2025-01-02', 35, 40, 25, 100, 'emily.thompson@liquid.tech', '18', '15', '20', '7'),
+('Alex Kim', '2025-01-02', 20, 32, 12, 64, 'alex.kim@liquid.tech', '6', '7', '11', '2'),
+('Maria Garcia', '2025-01-02', 26, 36, 19, 81, 'maria.garcia@liquid.tech', '11', '9', '16', '4'),
+('James Wilson', '2025-01-02', 32, 44, 24, 100, 'james.wilson@liquid.tech', '16', '13', '19', '8'),
+('Lisa Anderson', '2025-01-02', 29, 39, 21, 89, 'lisa.anderson@liquid.tech', '13', '11', '17', '5'),
+('Robert Taylor', '2025-01-02', 24, 33, 16, 73, 'robert.taylor@liquid.tech', '9', '8', '13', '3'),
+('Amanda Brown', '2025-01-02', 27, 37, 18, 82, 'amanda.brown@liquid.tech', '10', '10', '15', '4'),
+('Kevin Lee', '2025-01-02', 31, 41, 23, 95, 'kevin.lee@liquid.tech', '14', '12', '18', '6'),
+
+-- Yesterday's data
+('Sarah Johnson', '2025-01-01', 23, 42, 16, 81, 'sarah.johnson@liquid.tech', '10', '7', '14', '4'),
+('Michael Chen', '2025-01-01', 28, 39, 20, 87, 'michael.chen@liquid.tech', '13', '9', '11', '3'),
+('Jessica Williams', '2025-01-01', 26, 35, 18, 79, 'jessica.williams@liquid.tech', '8', '11', '16', '5'),
+('David Rodriguez', '2025-01-01', 20, 33, 13, 66, 'david.rodriguez@liquid.tech', '7', '8', '12', '2'),
+('Emily Thompson', '2025-01-01', 33, 38, 23, 94, 'emily.thompson@liquid.tech', '16', '14', '18', '6'),
+('Alex Kim', '2025-01-01', 18, 30, 10, 58, 'alex.kim@liquid.tech', '5', '6', '9', '1'),
+('Maria Garcia', '2025-01-01', 24, 34, 17, 75, 'maria.garcia@liquid.tech', '9', '8', '14', '3'),
+('James Wilson', '2025-01-01', 30, 42, 22, 94, 'james.wilson@liquid.tech', '14', '12', '17', '7'),
+('Lisa Anderson', '2025-01-01', 27, 37, 19, 83, 'lisa.anderson@liquid.tech', '11', '10', '15', '4'),
+('Robert Taylor', '2025-01-01', 22, 31, 14, 67, 'robert.taylor@liquid.tech', '8', '7', '11', '2'),
+('Amanda Brown', '2025-01-01', 25, 35, 16, 76, 'amanda.brown@liquid.tech', '9', '9', '13', '3'),
+('Kevin Lee', '2025-01-01', 29, 39, 21, 89, 'kevin.lee@liquid.tech', '12', '11', '16', '5'),
+
+-- Week ago data
+('Sarah Johnson', '2024-12-26', 21, 40, 14, 75, 'sarah.johnson@liquid.tech', '8', '6', '12', '3'),
+('Michael Chen', '2024-12-26', 26, 37, 18, 81, 'michael.chen@liquid.tech', '11', '8', '10', '2'),
+('Jessica Williams', '2024-12-26', 24, 33, 16, 73, 'jessica.williams@liquid.tech', '7', '10', '14', '4'),
+('David Rodriguez', '2024-12-26', 18, 31, 11, 60, 'david.rodriguez@liquid.tech', '6', '7', '10', '1'),
+('Emily Thompson', '2024-12-26', 31, 36, 21, 88, 'emily.thompson@liquid.tech', '14', '13', '16', '5'),
+('Alex Kim', '2024-12-26', 16, 28, 8, 52, 'alex.kim@liquid.tech', '4', '5', '7', '1'),
+('Maria Garcia', '2024-12-26', 22, 32, 15, 69, 'maria.garcia@liquid.tech', '8', '7', '12', '2'),
+('James Wilson', '2024-12-26', 28, 40, 20, 88, 'james.wilson@liquid.tech', '12', '11', '15', '6'),
+('Lisa Anderson', '2024-12-26', 25, 35, 17, 77, 'lisa.anderson@liquid.tech', '10', '9', '13', '3'),
+('Robert Taylor', '2024-12-26', 20, 29, 12, 61, 'robert.taylor@liquid.tech', '7', '6', '9', '1'),
+('Amanda Brown', '2024-12-26', 23, 33, 14, 70, 'amanda.brown@liquid.tech', '8', '8', '11', '2'),
+('Kevin Lee', '2024-12-26', 27, 37, 19, 83, 'kevin.lee@liquid.tech', '10', '10', '14', '4');

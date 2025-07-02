@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Trophy, Medal, TrendingUp, Users, Clock } from "lucide-react";
+import { Crown, Trophy, Medal, TrendingUp, Users, Clock, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentCard } from "./AgentCard";
 import { RefreshIndicator } from "./RefreshIndicator";
@@ -23,6 +23,7 @@ interface AgentStats {
   "Walk-Ins": string;
   Date: string;
   rank: number;
+  latestDate?: string;
 }
 
 export function Dashboard() {
@@ -31,6 +32,22 @@ export function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("daily");
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [autoRotate, setAutoRotate] = useState(true);
+
+  // Auto-rotation between time periods every 10 seconds
+  useEffect(() => {
+    if (!autoRotate) return;
+    
+    const periods: TimePeriod[] = ["daily", "weekly", "monthly"];
+    let currentIndex = 0;
+    
+    const rotationInterval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % periods.length;
+      setTimePeriod(periods[currentIndex]);
+    }, 10000);
+
+    return () => clearInterval(rotationInterval);
+  }, [autoRotate]);
 
   const fetchAgentStats = async (period: TimePeriod) => {
     try {
@@ -64,7 +81,7 @@ export function Dashboard() {
       }
 
       // Aggregate data by agent for weekly/monthly views
-      const aggregatedData: Record<string, Omit<AgentStats, 'rank'>> = {};
+      const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string }> = {};
       
       data?.forEach((record) => {
         const agent = record.Agent;
@@ -75,6 +92,7 @@ export function Dashboard() {
             "Helpdesk ticketing": 0,
             Calls: 0,
             "Live Chat": 0,
+            latestDate: record.Date,
           };
         }
         
@@ -82,6 +100,11 @@ export function Dashboard() {
         aggregatedData[agent]["Helpdesk ticketing"] += record["Helpdesk ticketing"] || 0;
         aggregatedData[agent].Calls += record.Calls || 0;
         aggregatedData[agent]["Live Chat"] += record["Live Chat"] || 0;
+        
+        // Track the latest date for this agent
+        if (new Date(record.Date) > new Date(aggregatedData[agent].latestDate)) {
+          aggregatedData[agent].latestDate = record.Date;
+        }
       });
 
       // Convert to array and sort by total issues
@@ -140,19 +163,28 @@ export function Dashboard() {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        {/* Header with Liquid Logo */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-4">
+            <img 
+              src="/lovable-uploads/076cdbc1-71db-4395-8d53-3018b3b7e27d.png" 
+              alt="Liquid Intelligent Technologies" 
+              className="h-16 w-auto"
+            />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold bg-gradient-liquid bg-clip-text text-transparent">
               MOMENTUM
             </h1>
+            <p className="text-xl text-muted-foreground">
+              Agent Performance Leaderboard • {getPeriodLabel(timePeriod)}
+            </p>
+            {autoRotate && (
+              <Badge variant="outline" className="text-xs">
+                Auto-rotating every 10 seconds
+              </Badge>
+            )}
           </div>
-          <p className="text-xl text-muted-foreground">
-            Agent Performance Leaderboard • {getPeriodLabel(timePeriod)}
-          </p>
         </div>
 
         {/* Controls */}
@@ -162,7 +194,10 @@ export function Dashboard() {
               <Button
                 key={period}
                 variant={timePeriod === period ? "default" : "outline"}
-                onClick={() => setTimePeriod(period)}
+                onClick={() => {
+                  setTimePeriod(period);
+                  setAutoRotate(false); // Stop auto-rotation when user manually selects
+                }}
                 className={`filter-button capitalize ${
                   timePeriod === period ? "active" : ""
                 }`}
@@ -170,6 +205,13 @@ export function Dashboard() {
                 {period}
               </Button>
             ))}
+            <Button
+              variant={autoRotate ? "default" : "outline"}
+              onClick={() => setAutoRotate(!autoRotate)}
+              className="filter-button ml-4"
+            >
+              {autoRotate ? "⏸️ Pause" : "▶️ Auto"}
+            </Button>
           </div>
 
           <div className="flex items-center gap-4">
@@ -189,7 +231,7 @@ export function Dashboard() {
           {agents.slice(0, 3).map((agent, index) => (
             <Card key={agent.agentid} className={`rank-card ${index === 0 ? "rank-1" : ""} p-6`}>
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     {getStatsIcon(index + 1)}
                     <span className="text-sm font-medium text-muted-foreground">
@@ -200,6 +242,12 @@ export function Dashboard() {
                   <p className="text-2xl font-bold text-primary">
                     {agent["Total Issues handled"]} issues
                   </p>
+                  {timePeriod === "daily" && (agent.latestDate || agent.Date) && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(agent.latestDate || agent.Date).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
@@ -219,6 +267,7 @@ export function Dashboard() {
                 key={agent.agentid}
                 agent={agent}
                 rank={index + 1}
+                timePeriod={timePeriod}
                 className="leaderboard-enter"
                 style={{ animationDelay: `${index * 0.1}s` }}
               />

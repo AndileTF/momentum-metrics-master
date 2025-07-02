@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Crown, Trophy, Medal, User, Phone, MessageCircle, Mail, MessageSquare, CreditCard, Users } from "lucide-react";
+import { Crown, Trophy, Medal, User, Phone, MessageCircle, Mail, MessageSquare, CreditCard, Users, Calendar } from "lucide-react";
 
 interface AgentStats {
   Agent: string;
@@ -18,6 +18,7 @@ interface AgentStats {
   "Walk-Ins": string;
   Date: string;
   rank: number;
+  latestDate?: string;
 }
 
 interface AgentCardProps {
@@ -25,9 +26,10 @@ interface AgentCardProps {
   rank: number;
   className?: string;
   style?: React.CSSProperties;
+  timePeriod?: "daily" | "weekly" | "monthly";
 }
 
-export function AgentCard({ agent, rank, className = "", style }: AgentCardProps) {
+export function AgentCard({ agent, rank, className = "", style, timePeriod = "daily" }: AgentCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const getRankIcon = () => {
@@ -109,6 +111,12 @@ export function AgentCard({ agent, rank, className = "", style }: AgentCardProps
                 {agent["Total Issues handled"]}
               </p>
               <p className="text-sm text-muted-foreground">Total Issues</p>
+              {timePeriod === "daily" && (agent.latestDate || agent.Date) && (
+                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{new Date(agent.latestDate || agent.Date).toLocaleDateString()}</span>
+                </div>
+              )}
             </div>
           </div>
 

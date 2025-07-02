@@ -71,7 +71,8 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-champion': 'var(--gradient-champion)',
 				'gradient-card': 'var(--gradient-card)',
-				'gradient-background': 'var(--gradient-background)'
+				'gradient-background': 'var(--gradient-background)',
+				'gradient-liquid': 'var(--gradient-liquid)'
 			},
 			boxShadow: {
 				'glow-primary': 'var(--glow-primary)',
