@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Trophy, Medal, TrendingUp, Users, Clock, Calendar } from "lucide-react";
+import { Crown, Trophy, Medal, TrendingUp, Users, Clock, Calendar, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentCard } from "./AgentCard";
 import { RefreshIndicator } from "./RefreshIndicator";
@@ -283,6 +284,20 @@ export function Dashboard() {
         <div className="text-center text-sm text-muted-foreground">
           <Clock className="h-4 w-4 inline mr-2" />
           Dashboard refreshes automatically every 5 minutes
+        </div>
+
+        {/* Admin Button */}
+        <div className="text-center">
+          <Button 
+            asChild 
+            variant="outline" 
+            className="bg-primary/10 border-primary/20 hover:bg-primary/20"
+          >
+            <Link to="/admin" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Admin Panel
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
