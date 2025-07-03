@@ -89,6 +89,11 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
       let duplicateCount = 0;
 
       for (const row of excelData) {
+        // Skip rows with missing agent names
+        if (!row.Agent || typeof row.Agent !== 'string') {
+          continue;
+        }
+        
         // Generate agentid from agent name (consistent with existing data)
         const agentid = row.Agent.toLowerCase().replace(/\s+/g, '-');
         
