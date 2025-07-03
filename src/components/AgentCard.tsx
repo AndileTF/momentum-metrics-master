@@ -12,10 +12,10 @@ interface AgentStats {
   Calls: number;
   "Live Chat": number;
   Email: string;
-  "Support/DNS Emails": string;
-  "Social Tickets": string;
-  "Billing Tickets": string;
-  "Walk-Ins": string;
+  "Support/DNS Emails": number | null;
+  "Social Tickets": number | null;
+  "Billing Tickets": number | null;
+  "Walk-Ins": number | null;
   Date: string;
   rank: number;
   latestDate?: string;
@@ -165,7 +165,7 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
                 {getMetricIcon("email")}
                 <span className="text-sm">Support Emails</span>
               </div>
-              <span className="font-semibold">{agent["Support/DNS Emails"] || "0"}</span>
+              <span className="font-semibold">{agent["Support/DNS Emails"] || 0}</span>
             </div>
 
             <div className="flex items-center justify-between metric-badge rounded-lg p-2">
@@ -173,7 +173,7 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
                 {getMetricIcon("social")}
                 <span className="text-sm">Social</span>
               </div>
-              <span className="font-semibold">{agent["Social Tickets"] || "0"}</span>
+              <span className="font-semibold">{agent["Social Tickets"] || 0}</span>
             </div>
 
             <div className="flex items-center justify-between metric-badge rounded-lg p-2">
@@ -181,7 +181,7 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
                 {getMetricIcon("billing")}
                 <span className="text-sm">Billing</span>
               </div>
-              <span className="font-semibold">{agent["Billing Tickets"] || "0"}</span>
+              <span className="font-semibold">{agent["Billing Tickets"] || 0}</span>
             </div>
           </div>
 

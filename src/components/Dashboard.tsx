@@ -18,10 +18,10 @@ interface AgentStats {
   Calls: number;
   "Live Chat": number;
   Email: string;
-  "Support/DNS Emails": string;
-  "Social Tickets": string;
-  "Billing Tickets": string;
-  "Walk-Ins": string;
+  "Support/DNS Emails": number | null;
+  "Social Tickets": number | null;
+  "Billing Tickets": number | null;
+  "Walk-Ins": number | null;
   Date: string;
   rank: number;
   latestDate?: string;
