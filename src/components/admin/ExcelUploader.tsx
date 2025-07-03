@@ -94,12 +94,9 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
           continue;
         }
         
-        // Generate agentid from agent name (consistent with existing data)
-        const agentid = row.Agent.toLowerCase().replace(/\s+/g, '-');
-        
         // Calculate total issues
         const totalIssues = (row["Helpdesk ticketing"] || 0) + 
-                           (row.Calls || 0) + 
+                           (row.Calls || 0) +
                            (row["Live Chat"] || 0) + 
                            (row["Support/DNS Emails"] || 0) + 
                            (row["Social Tickets"] || 0) + 
@@ -119,6 +116,9 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
           continue;
         }
 
+        // Generate a UUID for agentid
+        const agentid = crypto.randomUUID();
+        
         // Insert new record
         const { error } = await supabase
           .from("Daily Stats")
