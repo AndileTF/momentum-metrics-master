@@ -9,54 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      Agents: {
+        Row: {
+          Agent: string | null
+          agentid: string
+          Email: string | null
+        }
+        Insert: {
+          Agent?: string | null
+          agentid?: string
+          Email?: string | null
+        }
+        Update: {
+          Agent?: string | null
+          agentid?: string
+          Email?: string | null
+        }
+        Relationships: []
+      }
       "Daily Stats": {
         Row: {
           Agent: string
           agentid: string
-          "Billing Tickets": string | null
-          "Call Classification": string | null
+          "Billing Tickets": number | null
           Calls: number | null
-          Date: string
+          Date: string | null
           Email: string | null
+          Group: string | null
           "Helpdesk ticketing": number | null
           "Live Chat": number | null
-          "Social Tickets": string | null
-          "Support/DNS Emails": string | null
-          "Ticket to Calls": string | null
+          "Sales Tickets": number | null
+          "Social Tickets": number | null
+          "Support/DNS Emails": number | null
+          "Team Lead Group": string | null
           "Total Issues handled": number | null
-          "Walk-Ins": string | null
+          "Walk-Ins": number | null
         }
         Insert: {
           Agent: string
-          agentid?: string
-          "Billing Tickets"?: string | null
-          "Call Classification"?: string | null
+          agentid: string
+          "Billing Tickets"?: number | null
           Calls?: number | null
-          Date: string
+          Date?: string | null
           Email?: string | null
+          Group?: string | null
           "Helpdesk ticketing"?: number | null
           "Live Chat"?: number | null
-          "Social Tickets"?: string | null
-          "Support/DNS Emails"?: string | null
-          "Ticket to Calls"?: string | null
+          "Sales Tickets"?: number | null
+          "Social Tickets"?: number | null
+          "Support/DNS Emails"?: number | null
+          "Team Lead Group"?: string | null
           "Total Issues handled"?: number | null
-          "Walk-Ins"?: string | null
+          "Walk-Ins"?: number | null
         }
         Update: {
           Agent?: string
           agentid?: string
-          "Billing Tickets"?: string | null
-          "Call Classification"?: string | null
+          "Billing Tickets"?: number | null
           Calls?: number | null
-          Date?: string
+          Date?: string | null
           Email?: string | null
+          Group?: string | null
           "Helpdesk ticketing"?: number | null
           "Live Chat"?: number | null
-          "Social Tickets"?: string | null
-          "Support/DNS Emails"?: string | null
-          "Ticket to Calls"?: string | null
+          "Sales Tickets"?: number | null
+          "Social Tickets"?: number | null
+          "Support/DNS Emails"?: number | null
+          "Team Lead Group"?: string | null
           "Total Issues handled"?: number | null
-          "Walk-Ins"?: string | null
+          "Walk-Ins"?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Daily Stats_agentid_fkey"
+            columns: ["agentid"]
+            isOneToOne: false
+            referencedRelation: "Agents"
+            referencedColumns: ["agentid"]
+          },
+        ]
+      }
+      daily_stats: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: number
+          notes: string | null
+          row_identifier: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: never
+          notes?: string | null
+          row_identifier: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: never
+          notes?: string | null
+          row_identifier?: string
+          value?: number | null
         }
         Relationships: []
       }

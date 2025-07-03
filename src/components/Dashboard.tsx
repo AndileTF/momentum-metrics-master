@@ -6,6 +6,7 @@ import { Crown, Trophy, Medal, TrendingUp, Users, Clock, Calendar } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { AgentCard } from "./AgentCard";
 import { RefreshIndicator } from "./RefreshIndicator";
+import { TopIssueGenerators } from "./TopIssueGenerators";
 
 type TimePeriod = "daily" | "weekly" | "monthly";
 
@@ -253,6 +254,9 @@ export function Dashboard() {
             </Card>
           ))}
         </div>
+
+        {/* Top Issue Generators by Channel */}
+        <TopIssueGenerators timePeriod={timePeriod} />
 
         {/* Leaderboard */}
         <div className="space-y-4">
