@@ -106,13 +106,13 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
                            (row["Billing Tickets"] || 0) + 
                            (row["Walk-Ins"] || 0);
 
-        // Check if record already exists
+        // Check if record already exists (Agent + Date combination)
         const { data: existing } = await supabase
           .from("Daily Stats")
           .select("*")
           .eq("Agent", row.Agent)
           .eq("Date", row.Date)
-          .single();
+          .maybeSingle();
 
         if (existing) {
           duplicateCount++;
