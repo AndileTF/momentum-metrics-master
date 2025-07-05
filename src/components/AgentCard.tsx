@@ -97,7 +97,14 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
           {/* Avatar */}
           <div className="flex justify-center">
             <Avatar className="h-16 w-16 border-2 border-primary">
-              <AvatarImage src={agent.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`} />
+              <AvatarImage 
+                src={agent.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`}
+                onError={(e) => {
+                  console.log(`Failed to load avatar for ${agent.Agent}:`, agent.avatar);
+                  // Fallback to dicebear on error
+                  e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`;
+                }}
+              />
               <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold">
                 {getInitials(agent.Agent)}
               </AvatarFallback>
