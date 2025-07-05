@@ -7,7 +7,6 @@ import { Crown, Trophy, Medal, TrendingUp, Users, Clock, Calendar, Settings } fr
 import { supabase } from "@/integrations/supabase/client";
 import { AgentCard } from "./AgentCard";
 import { RefreshIndicator } from "./RefreshIndicator";
-import { TopIssueGenerators } from "./TopIssueGenerators";
 
 type TimePeriod = "daily" | "weekly" | "monthly";
 
@@ -26,6 +25,7 @@ interface AgentStats {
   Date: string;
   rank: number;
   latestDate?: string;
+  avatar?: string;
 }
 
 export function Dashboard() {
@@ -55,10 +55,6 @@ export function Dashboard() {
     try {
       setRefreshing(true);
       
-      let query = supabase
-        .from("Daily Stats")
-        .select("*");
-
       // Filter by time period
       const now = new Date();
       let startDate: Date;
@@ -75,7 +71,14 @@ export function Dashboard() {
           break;
       }
 
-      const { data, error } = await query.gte("Date", startDate.toISOString().split('T')[0]);
+      // Fetch daily stats with agent avatars
+      const { data, error } = await supabase
+        .from("Daily Stats")
+        .select(`
+          *,
+          Agents!Daily Stats_agentid_fkey (avatar)
+        `)
+        .gte("Date", startDate.toISOString().split('T')[0]);
 
       if (error) {
         console.error("Error fetching agent stats:", error);
@@ -85,7 +88,7 @@ export function Dashboard() {
       // Aggregate data by agent for weekly/monthly views
       const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string }> = {};
       
-      data?.forEach((record) => {
+      data?.forEach((record: any) => {
         const agent = record.Agent;
         if (!aggregatedData[agent]) {
           aggregatedData[agent] = {
@@ -95,6 +98,7 @@ export function Dashboard() {
             Calls: 0,
             "Live Chat": 0,
             latestDate: record.Date,
+            avatar: record.Agents?.avatar || null,
           };
         }
         
@@ -255,9 +259,6 @@ export function Dashboard() {
             </Card>
           ))}
         </div>
-
-        {/* Top Issue Generators by Channel */}
-        <TopIssueGenerators timePeriod={timePeriod} />
 
         {/* Leaderboard */}
         <div className="space-y-4">

@@ -13,16 +13,19 @@ export type Database = {
         Row: {
           Agent: string | null
           agentid: string
+          avatar: string | null
           Email: string | null
         }
         Insert: {
           Agent?: string | null
           agentid?: string
+          avatar?: string | null
           Email?: string | null
         }
         Update: {
           Agent?: string | null
           agentid?: string
+          avatar?: string | null
           Email?: string | null
         }
         Relationships: []
@@ -81,7 +84,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "Daily Stats_agentid_fkey"
+            foreignKeyName: "Daily Stats_duplicate_agentid_fkey"
             columns: ["agentid"]
             isOneToOne: false
             referencedRelation: "Agents"
