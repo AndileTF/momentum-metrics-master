@@ -76,7 +76,7 @@ export function Dashboard() {
         .from("Daily Stats")
         .select(`
           *,
-          Agents!Daily Stats_agentid_fkey (avatar)
+          Agents!Daily Stats_duplicate_agentid_fkey (avatar)
         `)
         .gte("Date", startDate.toISOString().split('T')[0]);
 
