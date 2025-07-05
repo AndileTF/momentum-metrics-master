@@ -71,19 +71,32 @@ export function Dashboard() {
           break;
       }
 
-      // Fetch daily stats with agent avatars
+      // Fetch daily stats first
       const { data, error } = await supabase
         .from("Daily Stats")
-        .select(`
-          *,
-          Agents!Daily Stats_duplicate_agentid_fkey (avatar)
-        `)
+        .select("*")
         .gte("Date", startDate.toISOString().split('T')[0]);
 
       if (error) {
         console.error("Error fetching agent stats:", error);
         return;
       }
+
+      // Fetch agents separately to get avatars
+      const { data: agentsData, error: agentsError } = await supabase
+        .from("Agents")
+        .select("agentid, avatar");
+
+      if (agentsError) {
+        console.error("Error fetching agents:", agentsError);
+      }
+
+      // Create a map of agentid to avatar
+      const avatarMap = agentsData?.reduce((acc, agent) => {
+        acc[agent.agentid] = agent.avatar;
+        return acc;
+      }, {} as Record<string, string>) || {};
+
 
       // Aggregate data by agent for weekly/monthly views
       const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string }> = {};
@@ -98,7 +111,7 @@ export function Dashboard() {
             Calls: 0,
             "Live Chat": 0,
             latestDate: record.Date,
-            avatar: record.Agents?.avatar || null,
+            avatar: avatarMap[record.agentid] || null,
           };
         }
         
