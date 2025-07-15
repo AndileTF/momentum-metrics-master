@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +35,9 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
   const [isFlipped, setIsFlipped] = useState(false);
 
   const getRankIcon = () => {
-    if (rank === 1) return <Crown className="h-6 w-6 text-champion" />;
-    if (rank === 2) return <Trophy className="h-6 w-6 text-primary" />;
-    if (rank === 3) return <Medal className="h-6 w-6 text-accent" />;
+    if (rank === 1) return <Crown className="h-5 w-5 lg:h-6 lg:w-6 text-champion" />;
+    if (rank === 2) return <Trophy className="h-5 w-5 lg:h-6 lg:w-6 text-primary" />;
+    if (rank === 3) return <Medal className="h-5 w-5 lg:h-6 lg:w-6 text-accent" />;
     return null;
   };
 
@@ -69,34 +70,34 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
 
   return (
     <Card
-      className={`${getRankClass()} p-6 cursor-pointer transition-all duration-300 ${className}`}
+      className={`${getRankClass()} p-4 lg:p-6 xl:p-8 cursor-pointer transition-all duration-300 hover:scale-105 ${className}`}
       style={style}
       onClick={() => setIsFlipped(!isFlipped)}
     >
       {!isFlipped ? (
-        // Front of card
-        <div className="space-y-4">
+        // Front of card - Optimized for large displays
+        <div className="space-y-3 lg:space-y-4">
           {/* Rank and Crown */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {getRankIcon()}
               <Badge 
                 variant={rank === 1 ? "default" : "outline"}
-                className={rank === 1 ? "bg-champion text-champion-foreground" : ""}
+                className={`text-xs lg:text-sm ${rank === 1 ? "bg-champion text-champion-foreground" : ""}`}
               >
                 #{rank}
               </Badge>
             </div>
             {rank === 1 && (
-              <div className="text-xs font-medium text-champion">
+              <div className="text-xs lg:text-sm font-medium text-champion">
                 CHAMPION
               </div>
             )}
           </div>
 
-          {/* Avatar */}
+          {/* Avatar - Larger for big displays */}
           <div className="flex justify-center">
-            <Avatar className="h-16 w-16 border-2 border-primary">
+            <Avatar className="h-16 w-16 lg:h-20 lg:w-20 xl:h-24 xl:w-24 border-2 border-primary">
               <AvatarImage 
                 src={agent.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`}
                 onError={(e) => {
@@ -105,20 +106,20 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
                   e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`;
                 }}
               />
-              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold">
+              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold text-sm lg:text-base xl:text-lg">
                 {getInitials(agent.Agent)}
               </AvatarFallback>
             </Avatar>
           </div>
 
-          {/* Agent Info */}
-          <div className="text-center space-y-2">
-            <h3 className="font-semibold text-lg">{agent.Agent}</h3>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-primary">
+          {/* Agent Info - Better typography scaling */}
+          <div className="text-center space-y-2 lg:space-y-3">
+            <h3 className="font-semibold text-base lg:text-lg xl:text-xl">{agent.Agent}</h3>
+            <div className="space-y-1 lg:space-y-2">
+              <p className="text-2xl lg:text-3xl xl:text-4xl font-bold text-primary">
                 {agent["Total Issues handled"]}
               </p>
-              <p className="text-sm text-muted-foreground">Total Issues</p>
+              <p className="text-xs lg:text-sm text-muted-foreground">Total Issues</p>
               {timePeriod === "daily" && (agent.latestDate || agent.Date) && (
                 <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />
@@ -134,68 +135,68 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
           </div>
         </div>
       ) : (
-        // Back of card - Detailed breakdown
-        <div className="space-y-4">
+        // Back of card - Detailed breakdown with better spacing
+        <div className="space-y-3 lg:space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">{agent.Agent}</h3>
-            <Badge variant="outline">#{rank}</Badge>
+            <h3 className="font-semibold text-sm lg:text-base">{agent.Agent}</h3>
+            <Badge variant="outline" className="text-xs lg:text-sm">#{rank}</Badge>
           </div>
 
-          {/* Metrics Breakdown */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
+          {/* Metrics Breakdown - Better spacing */}
+          <div className="space-y-2 lg:space-y-3">
+            <div className="flex items-center justify-between metric-badge rounded-lg p-2 lg:p-3">
               <div className="flex items-center gap-2">
                 {getMetricIcon("helpdesk")}
-                <span className="text-sm">Helpdesk</span>
+                <span className="text-xs lg:text-sm">Helpdesk</span>
               </div>
-              <span className="font-semibold">{agent["Helpdesk ticketing"] || 0}</span>
+              <span className="font-semibold text-sm lg:text-base">{agent["Helpdesk ticketing"] || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
+            <div className="flex items-center justify-between metric-badge rounded-lg p-2 lg:p-3">
               <div className="flex items-center gap-2">
                 {getMetricIcon("calls")}
-                <span className="text-sm">Calls</span>
+                <span className="text-xs lg:text-sm">Calls</span>
               </div>
-              <span className="font-semibold">{agent.Calls || 0}</span>
+              <span className="font-semibold text-sm lg:text-base">{agent.Calls || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
+            <div className="flex items-center justify-between metric-badge rounded-lg p-2 lg:p-3">
               <div className="flex items-center gap-2">
                 {getMetricIcon("chat")}
-                <span className="text-sm">Live Chat</span>
+                <span className="text-xs lg:text-sm">Live Chat</span>
               </div>
-              <span className="font-semibold">{agent["Live Chat"] || 0}</span>
+              <span className="font-semibold text-sm lg:text-base">{agent["Live Chat"] || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
+            <div className="flex items-center justify-between metric-badge rounded-lg p-2 lg:p-3">
               <div className="flex items-center gap-2">
                 {getMetricIcon("email")}
-                <span className="text-sm">Support Emails</span>
+                <span className="text-xs lg:text-sm">Support Emails</span>
               </div>
-              <span className="font-semibold">{agent["Support/DNS Emails"] || 0}</span>
+              <span className="font-semibold text-sm lg:text-base">{agent["Support/DNS Emails"] || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
+            <div className="flex items-center justify-between metric-badge rounded-lg p-2 lg:p-3">
               <div className="flex items-center gap-2">
                 {getMetricIcon("social")}
-                <span className="text-sm">Social</span>
+                <span className="text-xs lg:text-sm">Social</span>
               </div>
-              <span className="font-semibold">{agent["Social Tickets"] || 0}</span>
+              <span className="font-semibold text-sm lg:text-base">{agent["Social Tickets"] || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
+            <div className="flex items-center justify-between metric-badge rounded-lg p-2 lg:p-3">
               <div className="flex items-center gap-2">
                 {getMetricIcon("billing")}
-                <span className="text-sm">Billing</span>
+                <span className="text-xs lg:text-sm">Billing</span>
               </div>
-              <span className="font-semibold">{agent["Billing Tickets"] || 0}</span>
+              <span className="font-semibold text-sm lg:text-base">{agent["Billing Tickets"] || 0}</span>
             </div>
           </div>
 
           {/* Total */}
           <div className="border-t border-border pt-3">
-            <div className="flex items-center justify-between text-lg font-bold">
+            <div className="flex items-center justify-between text-base lg:text-lg font-bold">
               <span>Total Issues</span>
               <span className="text-primary">{agent["Total Issues handled"]}</span>
             </div>

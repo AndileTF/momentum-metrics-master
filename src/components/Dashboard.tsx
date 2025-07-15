@@ -180,44 +180,44 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header with Liquid Logo */}
-        <div className="text-center space-y-6">
+    <div className="min-h-screen p-4 lg:p-8 xl:p-12">
+      <div className="max-w-[2000px] mx-auto space-y-6 lg:space-y-10">
+        {/* Header with Liquid Logo - Optimized for large displays */}
+        <div className="text-center space-y-4 lg:space-y-8">
           <div className="flex items-center justify-center gap-4">
             <img 
               src="/lovable-uploads/076cdbc1-71db-4395-8d53-3018b3b7e27d.png" 
               alt="Liquid Intelligent Technologies" 
-              className="h-16 w-auto"
+              className="h-12 lg:h-20 xl:h-24 w-auto"
             />
           </div>
-          <div className="space-y-2">
-            <h1 className="text-5xl font-bold bg-gradient-liquid bg-clip-text text-transparent">
+          <div className="space-y-2 lg:space-y-4">
+            <h1 className="text-4xl lg:text-7xl xl:text-8xl font-bold bg-gradient-liquid bg-clip-text text-transparent">
               MOMENTUM
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-lg lg:text-2xl xl:text-3xl text-muted-foreground">
               Agent Performance Leaderboard • {getPeriodLabel(timePeriod)}
             </p>
             {autoRotate && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs lg:text-sm">
                 Auto-rotating every 10 seconds
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
+        {/* Controls - Better spacing for large displays */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-8">
+          <div className="flex gap-2 lg:gap-4">
             {(["daily", "weekly", "monthly"] as TimePeriod[]).map((period) => (
               <Button
                 key={period}
                 variant={timePeriod === period ? "default" : "outline"}
                 onClick={() => {
                   setTimePeriod(period);
-                  setAutoRotate(false); // Stop auto-rotation when user manually selects
+                  setAutoRotate(false);
                 }}
-                className={`filter-button capitalize ${
+                className={`filter-button capitalize text-sm lg:text-base px-4 lg:px-6 py-2 lg:py-3 ${
                   timePeriod === period ? "active" : ""
                 }`}
               >
@@ -227,43 +227,43 @@ export function Dashboard() {
             <Button
               variant={autoRotate ? "default" : "outline"}
               onClick={() => setAutoRotate(!autoRotate)}
-              className="filter-button ml-4"
+              className="filter-button ml-2 lg:ml-4 text-sm lg:text-base px-4 lg:px-6 py-2 lg:py-3"
             >
               {autoRotate ? "⏸️ Pause" : "▶️ Auto"}
             </Button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 lg:gap-6">
             <RefreshIndicator 
               refreshing={refreshing} 
               lastRefresh={lastRefresh}
             />
-            <Badge variant="outline" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+            <Badge variant="outline" className="flex items-center gap-2 text-sm lg:text-base px-3 lg:px-4 py-1 lg:py-2">
+              <Users className="h-4 w-4 lg:h-5 lg:w-5" />
               {agents.length} Agents
             </Badge>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Stats Overview - Improved for large displays */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 xl:gap-12">
           {agents.slice(0, 3).map((agent, index) => (
-            <Card key={agent.agentid} className={`rank-card ${index === 0 ? "rank-1" : ""} p-6`}>
+            <Card key={agent.agentid} className={`rank-card ${index === 0 ? "rank-1" : ""} p-6 lg:p-8 xl:p-10`}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4">
                     {getStatsIcon(index + 1)}
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <span className="text-sm lg:text-base font-medium text-muted-foreground">
                       #{index + 1} Position
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold">{agent.Agent}</h3>
-                  <p className="text-2xl font-bold text-primary">
+                  <h3 className="text-lg lg:text-xl xl:text-2xl font-semibold mb-2">{agent.Agent}</h3>
+                  <p className="text-2xl lg:text-3xl xl:text-4xl font-bold text-primary">
                     {agent["Total Issues handled"]} issues
                   </p>
                   {timePeriod === "daily" && (agent.latestDate || agent.Date) && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                      <Calendar className="h-3 w-3" />
+                    <div className="flex items-center gap-1 text-xs lg:text-sm text-muted-foreground mt-2 lg:mt-3">
+                      <Calendar className="h-3 w-3 lg:h-4 lg:w-4" />
                       <span>{new Date(agent.latestDate || agent.Date).toLocaleDateString()}</span>
                     </div>
                   )}
@@ -273,14 +273,14 @@ export function Dashboard() {
           ))}
         </div>
 
-        {/* Leaderboard */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-2">
-            <Trophy className="h-6 w-6 text-primary" />
+        {/* Leaderboard - Optimized grid for large displays */}
+        <div className="space-y-6 lg:space-y-8">
+          <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-center flex items-center justify-center gap-2 lg:gap-3">
+            <Trophy className="h-6 w-6 lg:h-8 lg:w-8 text-primary" />
             Top Performers
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6 xl:gap-8">
             {agents.map((agent, index) => (
               <AgentCard
                 key={agent.agentid}
@@ -295,20 +295,20 @@ export function Dashboard() {
         </div>
 
         {/* Auto-refresh Info */}
-        <div className="text-center text-sm text-muted-foreground">
-          <Clock className="h-4 w-4 inline mr-2" />
+        <div className="text-center text-sm lg:text-base text-muted-foreground">
+          <Clock className="h-4 w-4 lg:h-5 lg:w-5 inline mr-2" />
           Dashboard refreshes automatically every 5 minutes
         </div>
 
         {/* Admin Button */}
-        <div className="text-center">
+        <div className="text-center pb-8">
           <Button 
             asChild 
             variant="outline" 
-            className="bg-primary/10 border-primary/20 hover:bg-primary/20"
+            className="bg-primary/10 border-primary/20 hover:bg-primary/20 text-sm lg:text-base px-6 lg:px-8 py-2 lg:py-3"
           >
             <Link to="/admin" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
+              <Settings className="h-4 w-4 lg:h-5 lg:w-5" />
               Admin Panel
             </Link>
           </Button>
