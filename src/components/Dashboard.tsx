@@ -115,10 +115,21 @@ export function Dashboard() {
           };
         }
         
-        aggregatedData[agent]["Total Issues handled"] += record["Total Issues handled"] || 0;
+        // Calculate total from specific columns only
+        const calls = record.Calls || 0;
+        const liveChat = record["Live Chat"] || 0;
+        const billingTickets = record["Billing Tickets"] || 0;
+        const salesTickets = record["Sales Tickets"] || 0;
+        const supportEmails = record["Support/DNS Emails"] || 0;
+        const socialTickets = record["Social Tickets"] || 0;
+        const walkIns = record["Walk-Ins"] || 0;
+        
+        const totalIssues = calls + liveChat + billingTickets + salesTickets + supportEmails + socialTickets + walkIns;
+        
+        aggregatedData[agent]["Total Issues handled"] += totalIssues;
         aggregatedData[agent]["Helpdesk ticketing"] += record["Helpdesk ticketing"] || 0;
-        aggregatedData[agent].Calls += record.Calls || 0;
-        aggregatedData[agent]["Live Chat"] += record["Live Chat"] || 0;
+        aggregatedData[agent].Calls += calls;
+        aggregatedData[agent]["Live Chat"] += liveChat;
         
         // Track the latest date for this agent
         if (new Date(record.Date) > new Date(aggregatedData[agent].latestDate)) {
@@ -294,11 +305,6 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Auto-refresh Info */}
-        <div className="text-center text-sm text-muted-foreground">
-          <Clock className="h-4 w-4 inline mr-2" />
-          Dashboard refreshes automatically every 5 minutes
-        </div>
 
         {/* Admin Button */}
         <div className="text-center">

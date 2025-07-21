@@ -10,6 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { ExcelUploader } from "@/components/admin/ExcelUploader";
 import { AgentOverview } from "@/components/admin/AgentOverview";
 import { ManualDataEntry } from "@/components/admin/ManualDataEntry";
+import { Leaderboards } from "@/components/admin/Leaderboards";
+import { PerformanceMetrics } from "@/components/admin/PerformanceMetrics";
+import { AgentProfile } from "@/components/admin/AgentProfile";
+import { UserManagement } from "@/components/admin/UserManagement";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminStats {
@@ -19,7 +23,7 @@ interface AdminStats {
 }
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState<"upload" | "agents" | "manual">("upload");
+  const [activeTab, setActiveTab] = useState<"upload" | "agents" | "manual" | "leaderboards" | "metrics" | "profiles" | "users">("upload");
   const [stats, setStats] = useState<AdminStats>({
     totalAgents: 0,
     totalRecords: 0,
@@ -69,7 +73,11 @@ export default function Admin() {
   const tabButtons = [
     { id: "upload", label: "Excel Upload", icon: Upload },
     { id: "agents", label: "Agent Overview", icon: Users },
-    { id: "manual", label: "Manual Entry", icon: Plus }
+    { id: "manual", label: "Manual Entry", icon: Plus },
+    { id: "leaderboards", label: "Leaderboards", icon: Users },
+    { id: "metrics", label: "Performance Metrics", icon: Database },
+    { id: "profiles", label: "Agent Profiles", icon: Users },
+    { id: "users", label: "User Management", icon: Users }
   ];
 
   if (loading) {
@@ -184,6 +192,22 @@ export default function Admin() {
           
           {activeTab === "manual" && (
             <ManualDataEntry onEntryComplete={fetchAdminStats} />
+          )}
+          
+          {activeTab === "leaderboards" && (
+            <Leaderboards />
+          )}
+          
+          {activeTab === "metrics" && (
+            <PerformanceMetrics />
+          )}
+          
+          {activeTab === "profiles" && (
+            <AgentProfile />
+          )}
+          
+          {activeTab === "users" && (
+            <UserManagement />
           )}
         </div>
       </div>
