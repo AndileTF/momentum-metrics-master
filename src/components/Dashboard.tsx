@@ -82,22 +82,6 @@ export function Dashboard() {
         return;
       }
 
-      // Fetch agents separately to get avatars
-      const { data: agentsData, error: agentsError } = await supabase
-        .from("Agents")
-        .select("agentid, avatar");
-
-      if (agentsError) {
-        console.error("Error fetching agents:", agentsError);
-      }
-
-      // Create a map of agentid to avatar
-      const avatarMap = agentsData?.reduce((acc, agent) => {
-        acc[agent.agentid] = agent.avatar;
-        return acc;
-      }, {} as Record<string, string>) || {};
-
-
       // Aggregate data by agent for weekly/monthly views
       const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string }> = {};
       
@@ -111,18 +95,17 @@ export function Dashboard() {
             Calls: 0,
             "Live Chat": 0,
             latestDate: record.Date,
-            avatar: avatarMap[record.agentid] || null,
           };
         }
         
-        // Calculate total from specific columns only
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        // Calculate total from specific columns only - convert to numbers first
+        const calls = parseInt(record.Calls) || 0;
+        const liveChat = parseInt(record["Live Chat"]) || 0;
+        const billingTickets = parseInt(record["Billing Tickets"]) || 0;
+        const salesTickets = parseInt(record["Sales Tickets"]) || 0;
+        const supportEmails = parseInt(record["Support/DNS Emails"]) || 0;
+        const socialTickets = parseInt(record["Social Tickets"]) || 0;
+        const walkIns = parseInt(record["Walk-Ins"]) || 0;
         
         const totalIssues = calls + liveChat + billingTickets + salesTickets + supportEmails + socialTickets + walkIns;
         
