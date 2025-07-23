@@ -13,7 +13,6 @@ interface Agent {
   agentid: string;
   Agent: string;
   Email: string;
-  Profile?: string;
   avatar?: string;
 }
 
@@ -98,7 +97,7 @@ export function AgentProfile() {
 
       if (agentError) throw agentError;
 
-      // Get team average data from Daily Stats
+      // Get team average data from Dailystats
       const { data: agentTeamData, error: agentTeamError } = await supabase
         .from("Daily Stats")
         .select("\"Team Lead Group\"")
@@ -116,15 +115,15 @@ export function AgentProfile() {
 
       if (teamError) throw teamError;
 
-      // Process the data
+      // Process the data - convert fields to numbers (handling mixed types)
       const processedData = agentData?.map(record => {
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        const calls = Number(record.Calls) || 0;
+        const liveChat = Number(record["Live Chat"]) || 0;
+        const salesTickets = Number(record["Sales Tickets"]) || 0;
+        const supportEmails = Number(record["Support/DNS Emails"]) || 0;
+        const billingTickets = Number(record["Billing Tickets"]) || 0;
+        const socialTickets = Number(record["Social Tickets"]) || 0;
+        const walkIns = Number(record["Walk-Ins"]) || 0;
         
         return {
           ...record,
@@ -134,13 +133,13 @@ export function AgentProfile() {
 
       // Calculate team averages
       const teamStats = teamData?.reduce((acc, record) => {
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        const calls = Number(record.Calls) || 0;
+        const liveChat = Number(record["Live Chat"]) || 0;
+        const salesTickets = Number(record["Sales Tickets"]) || 0;
+        const supportEmails = Number(record["Support/DNS Emails"]) || 0;
+        const billingTickets = Number(record["Billing Tickets"]) || 0;
+        const socialTickets = Number(record["Social Tickets"]) || 0;
+        const walkIns = Number(record["Walk-Ins"]) || 0;
         
         acc.totalIssues += calls + liveChat + salesTickets + supportEmails + billingTickets + socialTickets + walkIns;
         acc.calls += calls;
@@ -170,10 +169,10 @@ export function AgentProfile() {
         const agent = record.Agent;
         if (!agentTotals[agent]) agentTotals[agent] = 0;
         
-        const total = (record.Calls || 0) + (record["Live Chat"] || 0) + 
-                     (record["Sales Tickets"] || 0) + (record["Support/DNS Emails"] || 0) +
-                     (record["Billing Tickets"] || 0) + (record["Social Tickets"] || 0) +
-                     (record["Walk-Ins"] || 0);
+        const total = (Number(record.Calls) || 0) + (Number(record["Live Chat"]) || 0) + 
+                     (Number(record["Sales Tickets"]) || 0) + (Number(record["Support/DNS Emails"]) || 0) +
+                     (Number(record["Billing Tickets"]) || 0) + (Number(record["Social Tickets"]) || 0) +
+                     (Number(record["Walk-Ins"]) || 0);
         agentTotals[agent] += total;
       });
 
@@ -203,8 +202,8 @@ export function AgentProfile() {
   };
 
   const filteredAgents = agents.filter(agent =>
-    agent.Agent.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    agent.Email.toLowerCase().includes(searchTerm.toLowerCase())
+    agent.Agent?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    agent.Email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const calculateTotal = (data: AgentStats[]) => {
@@ -244,28 +243,28 @@ export function AgentProfile() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredAgents.map((agent) => (
-              <Card
-                key={agent.agentid}
-                className={`cursor-pointer transition-colors hover:bg-accent ${
-                  selectedAgent?.agentid === agent.agentid ? "ring-2 ring-primary" : ""
-                }`}
+               <Card
+                 key={agent.agentid}
+                 className={`cursor-pointer transition-colors hover:bg-accent ${
+                   selectedAgent?.agentid === agent.agentid ? "ring-2 ring-primary" : ""
+                 }`}
                 onClick={() => setSelectedAgent(agent)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage 
-                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${agent.Agent}`} 
-                        alt={agent.Agent} 
-                      />
-                      <AvatarFallback>
-                        {agent.Agent.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{agent.Agent}</p>
-                      <p className="text-sm text-muted-foreground truncate">{agent.Profile || "Agent"}</p>
-                    </div>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage 
+                          src={agent.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${agent.Agent}`} 
+                          alt={agent.Agent} 
+                        />
+                        <AvatarFallback>
+                          {agent.Agent?.split(' ').map(n => n[0]).join('') || 'A'}
+                        </AvatarFallback>
+                      </Avatar>
+                     <div className="flex-1 min-w-0">
+                       <p className="font-medium truncate">{agent.Agent}</p>
+                       <p className="text-sm text-muted-foreground truncate">Agent</p>
+                     </div>
                   </div>
                 </CardContent>
               </Card>
@@ -284,26 +283,26 @@ export function AgentProfile() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage 
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${selectedAgent.Agent}`} 
-                    alt={selectedAgent.Agent} 
-                  />
-                  <AvatarFallback>
-                    {selectedAgent.Agent.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-xl font-semibold">{selectedAgent.Agent}</h3>
-                  <p className="text-muted-foreground">{selectedAgent.Profile}</p>
-                </div>
+                 <Avatar className="h-16 w-16">
+                   <AvatarImage 
+                     src={selectedAgent.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${selectedAgent.Agent}`} 
+                     alt={selectedAgent.Agent} 
+                   />
+                   <AvatarFallback>
+                     {selectedAgent.Agent?.split(' ').map(n => n[0]).join('') || 'A'}
+                   </AvatarFallback>
+                 </Avatar>
+                 <div>
+                   <h3 className="text-xl font-semibold">{selectedAgent.Agent}</h3>
+                   <p className="text-muted-foreground">Agent</p>
+                 </div>
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{selectedAgent.Email}</span>
-                </div>
+                 <div className="flex items-center gap-2">
+                   <Mail className="h-4 w-4 text-muted-foreground" />
+                   <span className="text-sm">{selectedAgent.Email}</span>
+                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Agent Profile</span>
