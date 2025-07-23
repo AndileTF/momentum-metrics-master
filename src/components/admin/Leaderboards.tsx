@@ -76,13 +76,13 @@ export function Leaderboards() {
           };
         }
         
-        const calls = Number(record.Calls) || 0;
-        const liveChat = Number(record["Live Chat"]) || 0;
-        const salesTickets = Number(record["Sales Tickets"]) || 0;
-        const supportEmails = Number(record["Support/DNS Emails"]) || 0;
-        const billingTickets = Number(record["Billing Tickets"]) || 0;
-        const socialTickets = Number(record["Social Tickets"]) || 0;
-        const walkIns = Number(record["Walk-Ins"]) || 0;
+        const calls = record.Calls || 0;
+        const liveChat = record["Live Chat"] || 0;
+        const salesTickets = record["Sales Tickets"] || 0;
+        const supportEmails = record["Support/DNS Emails"] || 0;
+        const billingTickets = record["Billing Tickets"] || 0;
+        const socialTickets = record["Social Tickets"] || 0;
+        const walkIns = record["Walk-Ins"] || 0;
         
         aggregatedData[agent].calls += calls;
         aggregatedData[agent].live_chat += liveChat;
