@@ -46,7 +46,7 @@ export function AgentOverview() {
   const fetchAgents = async () => {
     try {
       const { data, error } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("*")
         .order("Date", { ascending: false });
 
@@ -107,7 +107,7 @@ export function AgentOverview() {
 
     try {
       const { error } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .delete()
         .eq("Agent", agent.Agent)
         .eq("Date", agent.Date);

@@ -64,7 +64,7 @@ export function AgentProfile() {
   const fetchAgents = async () => {
     try {
       const { data, error } = await supabase
-        .from("Agents")
+        .from("csr_agent_proflie")
         .select("*")
         .order("Agent");
 
@@ -90,7 +90,7 @@ export function AgentProfile() {
       const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       
       const { data: agentData, error: agentError } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("*")
         .eq("agentid", agentId)
         .gte("Date", startDate.toISOString().split('T')[0])
@@ -100,7 +100,7 @@ export function AgentProfile() {
 
       // Get team average data from Daily Stats
       const { data: agentTeamData, error: agentTeamError } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("\"Team Lead Group\"")
         .eq("agentid", agentId)
         .limit(1);
@@ -109,7 +109,7 @@ export function AgentProfile() {
 
       const teamName = agentTeamData?.[0]?.["Team Lead Group"];
       const { data: teamData, error: teamError } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("*")
         .eq("Team Lead Group", teamName)
         .gte("Date", startDate.toISOString().split('T')[0]);
@@ -158,7 +158,7 @@ export function AgentProfile() {
 
       // Get agent rank
       const { data: allAgentsData, error: rankError } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("Agent, agentid, Calls, \"Live Chat\", \"Sales Tickets\", \"Support/DNS Emails\", \"Billing Tickets\", \"Social Tickets\", \"Walk-Ins\"")
         .gte("Date", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().split('T')[0]);
 

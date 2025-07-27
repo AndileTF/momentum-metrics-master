@@ -51,7 +51,7 @@ export function Leaderboards() {
       }
 
       const { data, error } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("*")
         .gte("Date", startDate.toISOString().split('T')[0]);
 

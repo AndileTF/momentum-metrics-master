@@ -40,14 +40,14 @@ export default function Admin() {
     try {
       // Get total agents
       const { data: agents, error: agentsError } = await supabase
-        .from("Agents")
+        .from("csr_agent_proflie")
         .select("agentid");
 
       if (agentsError) throw agentsError;
 
       // Get total records and latest upload
       const { data: records, error: recordsError } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .select("Date")
         .order("Date", { ascending: false });
 

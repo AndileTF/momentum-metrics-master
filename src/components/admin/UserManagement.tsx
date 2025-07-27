@@ -50,7 +50,7 @@ export function UserManagement() {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from("Agents")
+        .from("csr_agent_proflie")
         .select("*")
         .order("Agent");
 
@@ -89,7 +89,7 @@ export function UserManagement() {
   const handleCreateUser = async () => {
     try {
       const { error } = await supabase
-        .from("Agents")
+        .from("csr_agent_proflie")
         .insert([{
           Agent: newUser.Agent,
           Email: newUser.Email,
@@ -127,7 +127,7 @@ export function UserManagement() {
 
     try {
       const { error } = await supabase
-        .from("Agents")
+        .from("csr_agent_proflie")
         .update({
           Agent: editingUser.Agent,
           Email: editingUser.Email,
@@ -158,7 +158,7 @@ export function UserManagement() {
   const handleDeleteUser = async (userId: string) => {
     try {
       const { error } = await supabase
-        .from("Agents")
+        .from("csr_agent_proflie")
         .delete()
         .eq("agentid", userId);
 

@@ -105,7 +105,7 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
 
         // Check if record already exists (Agent + Date combination)
         const { data: existing } = await supabase
-          .from("Daily Stats")
+          .from("daily_stats")
           .select("*")
           .eq("Agent", row.Agent)
           .eq("Date", row.Date)
@@ -121,7 +121,7 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
         
         // Insert new record
         const { error } = await supabase
-          .from("Daily Stats")
+          .from("daily_stats")
           .insert({
             Agent: row.Agent,
             agentid: agentid,

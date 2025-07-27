@@ -76,7 +76,7 @@ export function ManualDataEntry({ onEntryComplete }: ManualDataEntryProps) {
                          formData["Walk-Ins"];
 
       const { error } = await supabase
-        .from("Daily Stats")
+        .from("daily_stats")
         .insert({
           Agent: formData.Agent,
           agentid: agentid,
