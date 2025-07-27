@@ -120,8 +120,8 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
         const agentid = crypto.randomUUID();
         
         // Insert new record
-        const { error } = (await supabase
-          .from("daily_stats")
+        const { error } = await (supabase
+          .from("daily_stats") as any)
           .insert({
             Agent: row.Agent,
             agentid: agentid,
@@ -136,7 +136,7 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
             "Total Issues handled": totalIssues,
             Group: row.Group || null,
             "Team Lead Group": row["Team Lead Group"] || null
-          }) as any);
+          });
 
         if (error) {
           console.error("Error inserting row:", error);

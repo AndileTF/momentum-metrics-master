@@ -83,7 +83,7 @@ export function Dashboard() {
       }
 
       // Aggregate data by agent for weekly/monthly views
-      const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string }> = {};
+      const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string; avatar?: string }> = {};
       
       data?.forEach((record: any) => {
         const agent = record.Agent;
@@ -95,6 +95,7 @@ export function Dashboard() {
             Calls: 0,
             "Live Chat": 0,
             latestDate: record.Date,
+            avatar: undefined, // Will be fetched separately
           };
         }
         
@@ -119,6 +120,21 @@ export function Dashboard() {
           aggregatedData[agent].latestDate = record.Date;
         }
       });
+
+      // Fetch agent avatars from profile table
+      const agentNames = Object.keys(aggregatedData);
+      if (agentNames.length > 0) {
+        const { data: profileData } = await supabase
+          .from("profile")
+          .select("name, avatar")
+          .in("name", agentNames);
+        
+        profileData?.forEach((profile: any) => {
+          if (aggregatedData[profile.name]) {
+            aggregatedData[profile.name].avatar = profile.avatar;
+          }
+        });
+      }
 
       // Convert to array and sort by total issues
       const sortedAgents = Object.values(aggregatedData)

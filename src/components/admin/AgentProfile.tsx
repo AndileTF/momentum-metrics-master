@@ -64,12 +64,21 @@ export function AgentProfile() {
   const fetchAgents = async () => {
     try {
       const { data, error } = await supabase
-        .from("csr_agent_proflie")
-        .select("*")
-        .order("Agent");
+        .from("profile")
+        .select("agentid, name, email, avatar")
+        .order("name");
 
       if (error) throw error;
-      setAgents(data || []);
+      
+      // Map the fields from profile table to Agent interface
+      const mappedAgents = data?.map(profile => ({
+        agentid: profile.agentid,
+        Agent: profile.name,
+        Email: profile.email,
+        avatar: profile.avatar
+      })) || [];
+      
+      setAgents(mappedAgents);
     } catch (error) {
       console.error("Error fetching agents:", error);
       toast({
@@ -263,7 +272,7 @@ export function AgentProfile() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage 
-                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${agent.Agent}`} 
+                        src={agent.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${agent.Agent}`} 
                         alt={agent.Agent} 
                       />
                       <AvatarFallback>
@@ -294,7 +303,7 @@ export function AgentProfile() {
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
                   <AvatarImage 
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${selectedAgent.Agent}`} 
+                    src={selectedAgent.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${selectedAgent.Agent}`} 
                     alt={selectedAgent.Agent} 
                   />
                   <AvatarFallback>
