@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,12 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, BarChart3, Users } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Calendar, Search, BarChart3, Users, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 type TimePeriod = "daily" | "weekly" | "monthly";
-type ViewMode = "table" | "chart";
 
 interface PerformanceData {
   Agent: string;
@@ -33,9 +35,12 @@ interface PerformanceData {
 
 export function PerformanceMetrics() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("daily");
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTeamLead, setSelectedTeamLead] = useState<string>("all");
+  const [myTeamOnly, setMyTeamOnly] = useState(false);
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+  const [teamLeads, setTeamLeads] = useState<string[]>([]);
+  const [currentUserTeam, setCurrentUserTeam] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [teamStats, setTeamStats] = useState({
     totalAgents: 0,
@@ -46,8 +51,47 @@ export function PerformanceMetrics() {
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchTeamLeads();
+    fetchCurrentUserTeam();
+  }, []);
+
+  useEffect(() => {
     fetchPerformanceData();
-  }, [timePeriod]);
+  }, [timePeriod, selectedTeamLead, myTeamOnly]);
+
+  const fetchTeamLeads = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("daily_stats")
+        .select("Team Lead Group")
+        .not("Team Lead Group", "is", null);
+
+      if (error) throw error;
+
+      const uniqueTeamLeads = [...new Set(data?.map(record => record["Team Lead Group"]) || [])];
+      setTeamLeads(uniqueTeamLeads.filter(Boolean));
+    } catch (error) {
+      console.error("Error fetching team leads:", error);
+    }
+  };
+
+  const fetchCurrentUserTeam = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profile")
+        .select("team_lead_name")
+        .eq("email", user.email)
+        .single();
+
+      if (error) throw error;
+      setCurrentUserTeam(data?.team_lead_name || "");
+    } catch (error) {
+      console.error("Error fetching current user team:", error);
+    }
+  };
 
   const fetchPerformanceData = async () => {
     try {
@@ -72,10 +116,19 @@ export function PerformanceMetrics() {
           break;
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("daily_stats")
         .select("*")
         .gte("Date", startDate.toISOString().split('T')[0]);
+
+      // Apply team lead filter
+      if (myTeamOnly && currentUserTeam) {
+        query = query.eq("Team Lead Group", currentUserTeam);
+      } else if (selectedTeamLead !== "all") {
+        query = query.eq("Team Lead Group", selectedTeamLead);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -106,13 +159,14 @@ export function PerformanceMetrics() {
           };
         }
         
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        // Convert to numbers and handle null values
+        const calls = parseInt(record.Calls?.toString()) || 0;
+        const liveChat = parseInt(record["Live Chat"]?.toString()) || 0;
+        const salesTickets = parseInt(record["Sales Tickets"]?.toString()) || 0;
+        const supportEmails = parseInt(record["Support/DNS Emails"]?.toString()) || 0;
+        const billingTickets = parseInt(record["Billing Tickets"]?.toString()) || 0;
+        const socialTickets = parseInt(record["Social Tickets"]?.toString()) || 0;
+        const walkIns = parseInt(record["Walk-Ins"]?.toString()) || 0;
         const totalIssues = calls + liveChat + salesTickets + supportEmails + billingTickets + socialTickets + walkIns;
         
         aggregatedData[agent].Calls += calls;
@@ -123,7 +177,7 @@ export function PerformanceMetrics() {
         aggregatedData[agent]["Social Tickets"] += socialTickets;
         aggregatedData[agent]["Walk-Ins"] += walkIns;
         aggregatedData[agent]["Total Issues"] += totalIssues;
-        aggregatedData[agent]["Helpdesk ticketing"] += record["Helpdesk ticketing"] || 0;
+        aggregatedData[agent]["Helpdesk ticketing"] += parseInt(record["Helpdesk ticketing"]?.toString()) || 0;
 
         // Team totals
         teamTotals[team] = (teamTotals[team] || 0) + totalIssues;
@@ -185,36 +239,81 @@ export function PerformanceMetrics() {
   return (
     <div className="space-y-6">
       {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex gap-4 items-center">
-          <Select value={timePeriod} onValueChange={(value: TimePeriod) => setTimePeriod(value)}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily Metrics</SelectItem>
-              <SelectItem value="weekly">Weekly Metrics</SelectItem>
-              <SelectItem value="monthly">Monthly Metrics</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button onClick={fetchPerformanceData} variant="outline">
-            Refresh
-          </Button>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters & Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label>Time Period</Label>
+              <Select value={timePeriod} onValueChange={(value: TimePeriod) => setTimePeriod(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily Metrics</SelectItem>
+                  <SelectItem value="weekly">Weekly Metrics</SelectItem>
+                  <SelectItem value="monthly">Monthly Metrics</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="flex gap-2 items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search agents or teams..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
+            <div className="space-y-2">
+              <Label>Team Lead</Label>
+              <Select value={selectedTeamLead} onValueChange={setSelectedTeamLead}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Teams</SelectItem>
+                  {teamLeads.map(team => (
+                    <SelectItem key={team} value={team}>{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>My Team Only</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="my-team-only"
+                  checked={myTeamOnly}
+                  onCheckedChange={setMyTeamOnly}
+                  disabled={!currentUserTeam}
+                />
+                <Label htmlFor="my-team-only" className="text-sm">
+                  {currentUserTeam ? `${currentUserTeam} team` : "No team"}
+                </Label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Search</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search agents..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Actions</Label>
+              <Button onClick={fetchPerformanceData} variant="outline" className="w-full">
+                Refresh Data
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,9 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Crown, Medal, TrendingUp, TrendingDown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Users, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,14 +25,57 @@ interface LeaderboardAgent {
 export function Leaderboards() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("daily");
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("total_issues");
+  const [selectedTeamLead, setSelectedTeamLead] = useState<string>("all");
+  const [myTeamOnly, setMyTeamOnly] = useState(false);
   const [topPerformers, setTopPerformers] = useState<LeaderboardAgent[]>([]);
   const [bottomPerformers, setBottomPerformers] = useState<LeaderboardAgent[]>([]);
+  const [teamLeads, setTeamLeads] = useState<string[]>([]);
+  const [currentUserTeam, setCurrentUserTeam] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchTeamLeads();
+    fetchCurrentUserTeam();
+  }, []);
+
+  useEffect(() => {
     fetchLeaderboards();
-  }, [timePeriod, selectedMetric]);
+  }, [timePeriod, selectedMetric, selectedTeamLead, myTeamOnly]);
+
+  const fetchTeamLeads = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("daily_stats")
+        .select("Team Lead Group")
+        .not("Team Lead Group", "is", null);
+
+      if (error) throw error;
+
+      const uniqueTeamLeads = [...new Set(data?.map(record => record["Team Lead Group"]) || [])];
+      setTeamLeads(uniqueTeamLeads.filter(Boolean));
+    } catch (error) {
+      console.error("Error fetching team leads:", error);
+    }
+  };
+
+  const fetchCurrentUserTeam = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profile")
+        .select("team_lead_name")
+        .eq("email", user.email)
+        .single();
+
+      if (error) throw error;
+      setCurrentUserTeam(data?.team_lead_name || "");
+    } catch (error) {
+      console.error("Error fetching current user team:", error);
+    }
+  };
 
   const fetchLeaderboards = async () => {
     try {
@@ -50,10 +96,19 @@ export function Leaderboards() {
           break;
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("daily_stats")
         .select("*")
         .gte("Date", startDate.toISOString().split('T')[0]);
+
+      // Apply team lead filter
+      if (myTeamOnly && currentUserTeam) {
+        query = query.eq("Team Lead Group", currentUserTeam);
+      } else if (selectedTeamLead !== "all") {
+        query = query.eq("Team Lead Group", selectedTeamLead);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -76,13 +131,14 @@ export function Leaderboards() {
           };
         }
         
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        // Convert to numbers and handle null values
+        const calls = parseInt(record.Calls?.toString()) || 0;
+        const liveChat = parseInt(record["Live Chat"]?.toString()) || 0;
+        const salesTickets = parseInt(record["Sales Tickets"]?.toString()) || 0;
+        const supportEmails = parseInt(record["Support/DNS Emails"]?.toString()) || 0;
+        const billingTickets = parseInt(record["Billing Tickets"]?.toString()) || 0;
+        const socialTickets = parseInt(record["Social Tickets"]?.toString()) || 0;
+        const walkIns = parseInt(record["Walk-Ins"]?.toString()) || 0;
         
         aggregatedData[agent].calls += calls;
         aggregatedData[agent].live_chat += liveChat;
@@ -106,11 +162,13 @@ export function Leaderboards() {
         rank: index + 1,
       }));
 
-      // Top 10 performers
-      setTopPerformers(rankedAgents.slice(0, 10));
-      
-      // Bottom 5 performers (excluding those with 0 values)
+      // Filter out agents with 0 values for meaningful results
       const activeAgents = rankedAgents.filter(agent => agent.value > 0);
+
+      // Top 5 performers
+      setTopPerformers(activeAgents.slice(0, 5));
+      
+      // Bottom 5 performers
       setBottomPerformers(activeAgents.slice(-5).reverse());
 
     } catch (error) {
@@ -153,35 +211,83 @@ export function Leaderboards() {
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="flex gap-4 items-center">
-        <Select value={timePeriod} onValueChange={(value: TimePeriod) => setTimePeriod(value)}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-          </SelectContent>
-        </Select>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters & Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Time Period</Label>
+              <Select value={timePeriod} onValueChange={(value: TimePeriod) => setTimePeriod(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Select value={selectedMetric} onValueChange={(value: MetricType) => setSelectedMetric(value)}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="total_issues">Total Issues</SelectItem>
-            <SelectItem value="calls">Calls</SelectItem>
-            <SelectItem value="live_chat">Live Chat</SelectItem>
-            <SelectItem value="sales_tickets">Sales Tickets</SelectItem>
-            <SelectItem value="support_emails">Support/DNS Emails</SelectItem>
-          </SelectContent>
-        </Select>
+            <div className="space-y-2">
+              <Label>Metric</Label>
+              <Select value={selectedMetric} onValueChange={(value: MetricType) => setSelectedMetric(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="total_issues">Total Issues</SelectItem>
+                  <SelectItem value="calls">Calls</SelectItem>
+                  <SelectItem value="live_chat">Live Chat</SelectItem>
+                  <SelectItem value="sales_tickets">Sales Tickets</SelectItem>
+                  <SelectItem value="support_emails">Support/DNS Emails</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Button onClick={fetchLeaderboards} variant="outline">
-          Refresh
-        </Button>
-      </div>
+            <div className="space-y-2">
+              <Label>Team Lead</Label>
+              <Select value={selectedTeamLead} onValueChange={setSelectedTeamLead}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Teams</SelectItem>
+                  {teamLeads.map(team => (
+                    <SelectItem key={team} value={team}>{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>My Team Only</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="my-team-only"
+                  checked={myTeamOnly}
+                  onCheckedChange={setMyTeamOnly}
+                  disabled={!currentUserTeam}
+                />
+                <Label htmlFor="my-team-only" className="text-sm">
+                  {currentUserTeam ? `Show ${currentUserTeam} team only` : "No team assigned"}
+                </Label>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Button onClick={fetchLeaderboards} variant="outline">
+              Refresh Data
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Performers */}
@@ -189,7 +295,7 @@ export function Leaderboards() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-500" />
-              Top Performers - {getMetricLabel(selectedMetric)}
+              Top 5 Performers - {getMetricLabel(selectedMetric)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -208,6 +314,11 @@ export function Leaderboards() {
                   </Badge>
                 </div>
               ))}
+              {topPerformers.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No data available for the selected criteria
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -217,7 +328,7 @@ export function Leaderboards() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingDown className="h-5 w-5 text-red-500" />
-              Needs Improvement - {getMetricLabel(selectedMetric)}
+              Bottom 5 Performers - {getMetricLabel(selectedMetric)}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -236,6 +347,11 @@ export function Leaderboards() {
                   </Badge>
                 </div>
               ))}
+              {bottomPerformers.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No data available for the selected criteria
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

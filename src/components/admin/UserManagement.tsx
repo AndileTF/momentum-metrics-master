@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Users, UserPlus, Edit, Trash2, Shield, Search } from "lucide-react";
+import { Users, UserPlus, Edit, Trash2, Shield, Search, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,10 +25,11 @@ interface User {
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
-  const [filterTeam, setFilterTeam] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<string[]>([]);
@@ -43,6 +44,7 @@ export function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
+    fetchPendingUsers();
   }, []);
 
   const fetchUsers = async () => {
@@ -56,20 +58,26 @@ export function UserManagement() {
 
       if (error) throw error;
 
-      // Simulate role and status data (in real app, this would come from auth/user management table)
-      const usersWithRoles = data?.map(user => ({
-        ...user,
-        role: "Agent" as "Admin" | "Team Lead" | "Agent",
-        status: "Active" as "Active" | "Inactive",
-        lastLogin: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
-      })) || [];
+      // Get user roles from auth
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      
+      const usersWithRoles = data?.map(user => {
+        const authUser = authUsers?.users.find(au => au.email === user.Email);
+        return {
+          ...user,
+          role: "Agent" as "Admin" | "Team Lead" | "Agent",
+          status: authUser ? "Active" : "Pending" as "Active" | "Inactive" | "Pending",
+          lastLogin: authUser?.last_sign_in_at || null
+        };
+      }) || [];
 
       setUsers(usersWithRoles);
 
-      // For teams, we'll get them from Daily Stats table
-      const { data: teamData } = (await supabase
+      // Get teams from daily stats
+      const { data: teamData } = await supabase
         .from("daily_stats")
-        .select("\"Team Lead Group\"") as any);
+        .select("Team Lead Group")
+        .not("Team Lead Group", "is", null);
       
       const uniqueTeams = [...new Set(teamData?.map((record: any) => record["Team Lead Group"]) || [])] as string[];
       setTeams(uniqueTeams);
@@ -83,6 +91,90 @@ export function UserManagement() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPendingUsers = async () => {
+    try {
+      // Get all auth users
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      
+      // Get users who don't have roles assigned
+      const { data: userRoles } = await supabase
+        .from("user_roles")
+        .select("user_id");
+
+      const assignedUserIds = userRoles?.map(ur => ur.user_id) || [];
+      
+      const pending = authUsers?.users.filter(user => 
+        !assignedUserIds.includes(user.id) && 
+        user.email_confirmed_at // Only show confirmed users
+      ) || [];
+
+      setPendingUsers(pending);
+    } catch (error) {
+      console.error("Error fetching pending users:", error);
+    }
+  };
+
+  const handleApproveUser = async (userId: string, email: string, role: "admin" | "manager" | "agent" = "agent") => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert([{
+          user_id: userId,
+          role: role
+        }]);
+
+      if (error) throw error;
+
+      // Also create a profile entry if it doesn't exist
+      const { error: profileError } = await supabase
+        .from("csr_agent_proflie")
+        .upsert([{
+          Email: email,
+          Agent: email.split('@')[0], // Use email prefix as default name
+          Profile: "Agent"
+        }]);
+
+      if (profileError) console.error("Profile creation error:", profileError);
+
+      toast({
+        title: "Success",
+        description: `User approved with ${role} role`
+      });
+
+      fetchUsers();
+      fetchPendingUsers();
+    } catch (error) {
+      console.error("Error approving user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve user",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRejectUser = async (userId: string) => {
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "User access rejected"
+      });
+
+      fetchPendingUsers();
+    } catch (error) {
+      console.error("Error rejecting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject user",
+        variant: "destructive"
+      });
     }
   };
 
@@ -185,8 +277,9 @@ export function UserManagement() {
     const matchesSearch = user.Agent.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.Email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === "all" || user.role === filterRole;
+    const matchesStatus = filterStatus === "all" || user.status === filterStatus;
     
-    return matchesSearch && matchesRole;
+    return matchesSearch && matchesRole && matchesStatus;
   });
 
   const getRoleBadgeVariant = (role: string) => {
@@ -262,6 +355,55 @@ export function UserManagement() {
         </Dialog>
       </div>
 
+      {/* Pending Approvals */}
+      {pendingUsers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              Pending Approvals ({pendingUsers.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg bg-orange-50 border-orange-200">
+                  <div>
+                    <p className="font-medium">{user.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Registered: {new Date(user.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleApproveUser(user.id, user.email, "agent")}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Approve as Agent
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleApproveUser(user.id, user.email, "manager")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Approve as Manager
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleRejectUser(user.id)}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
@@ -288,15 +430,15 @@ export function UserManagement() {
               </SelectContent>
             </Select>
 
-            <Select value={filterTeam} onValueChange={setFilterTeam}>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Teams</SelectItem>
-                {teams.map(team => (
-                  <SelectItem key={team} value={team}>{team}</SelectItem>
-                ))}
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -316,7 +458,6 @@ export function UserManagement() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Team</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Login</TableHead>
                   <TableHead>Actions</TableHead>
@@ -332,9 +473,13 @@ export function UserManagement() {
                         {user.role}
                       </Badge>
                     </TableCell>
-                    <TableCell>{user["Team Lead Group"]}</TableCell>
                     <TableCell>
-                      <Badge variant={user.status === "Active" ? "default" : "secondary"}>
+                      <Badge 
+                        variant={
+                          user.status === "Active" ? "default" : 
+                          user.status === "Pending" ? "secondary" : "destructive"
+                        }
+                      >
                         {user.status}
                       </Badge>
                     </TableCell>

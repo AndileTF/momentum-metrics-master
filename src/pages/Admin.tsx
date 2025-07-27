@@ -2,10 +2,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Users, Database, Plus, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Upload, Users, Database, Plus, FileSpreadsheet, AlertCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ExcelUploader } from "@/components/admin/ExcelUploader";
 import { AgentOverview } from "@/components/admin/AgentOverview";
@@ -14,6 +12,7 @@ import { Leaderboards } from "@/components/admin/Leaderboards";
 import { PerformanceMetrics } from "@/components/admin/PerformanceMetrics";
 import { AgentProfile } from "@/components/admin/AgentProfile";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { OnlineExcelViewer } from "@/components/admin/OnlineExcelViewer";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminStats {
@@ -23,7 +22,7 @@ interface AdminStats {
 }
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState<"upload" | "agents" | "manual" | "leaderboards" | "metrics" | "profiles" | "users">("upload");
+  const [activeTab, setActiveTab] = useState<"upload" | "agents" | "manual" | "leaderboards" | "metrics" | "profiles" | "users" | "excel">("upload");
   const [stats, setStats] = useState<AdminStats>({
     totalAgents: 0,
     totalRecords: 0,
@@ -77,7 +76,8 @@ export default function Admin() {
     { id: "leaderboards", label: "Leaderboards", icon: Users },
     { id: "metrics", label: "Performance Metrics", icon: Database },
     { id: "profiles", label: "Agent Profiles", icon: Users },
-    { id: "users", label: "User Management", icon: Users }
+    { id: "users", label: "User Management", icon: Users },
+    { id: "excel", label: "Online Excel", icon: ExternalLink }
   ];
 
   if (loading) {
@@ -92,7 +92,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-background">
+    <div className="min-h-screen p-6" style={{ background: 'linear-gradient(135deg, #273c88 0%, #c8187d 100%)' }}>
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-6">
@@ -104,10 +104,10 @@ export default function Admin() {
             />
           </div>
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-liquid bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-white">
               ADMIN PANEL
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-white/80">
               Data Management & Agent Administration
             </p>
           </div>
@@ -115,48 +115,48 @@ export default function Admin() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Users className="h-6 w-6 text-primary" />
+                <div className="p-3 rounded-lg bg-white/20">
+                  <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.totalAgents}</p>
-                  <p className="text-sm text-muted-foreground">Total Agents</p>
+                  <p className="text-2xl font-bold text-white">{stats.totalAgents}</p>
+                  <p className="text-sm text-white/70">Total Agents</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Database className="h-6 w-6 text-primary" />
+                <div className="p-3 rounded-lg bg-white/20">
+                  <Database className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.totalRecords}</p>
-                  <p className="text-sm text-muted-foreground">Total Records</p>
+                  <p className="text-2xl font-bold text-white">{stats.totalRecords}</p>
+                  <p className="text-sm text-white/70">Total Records</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <FileSpreadsheet className="h-6 w-6 text-primary" />
+                <div className="p-3 rounded-lg bg-white/20">
+                  <FileSpreadsheet className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-white">
                     {stats.latestUpload 
                       ? new Date(stats.latestUpload).toLocaleDateString()
                       : "No uploads yet"
                     }
                   </p>
-                  <p className="text-sm text-muted-foreground">Latest Upload</p>
+                  <p className="text-sm text-white/70">Latest Upload</p>
                 </div>
               </div>
             </CardContent>
@@ -165,13 +165,17 @@ export default function Admin() {
 
         {/* Navigation Tabs */}
         <div className="flex justify-center">
-          <div className="flex gap-2 p-1 bg-muted rounded-lg">
+          <div className="flex gap-2 p-1 bg-white/10 backdrop-blur-sm rounded-lg">
             {tabButtons.map(({ id, label, icon: Icon }) => (
               <Button
                 key={id}
                 variant={activeTab === id ? "default" : "ghost"}
                 onClick={() => setActiveTab(id as typeof activeTab)}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${
+                  activeTab === id 
+                    ? "bg-white text-[#273c88]" 
+                    : "text-white hover:bg-white/20"
+                }`}
               >
                 <Icon className="h-4 w-4" />
                 {label}
@@ -182,33 +186,41 @@ export default function Admin() {
 
         {/* Tab Content */}
         <div className="space-y-6">
-          {activeTab === "upload" && (
-            <ExcelUploader onUploadComplete={fetchAdminStats} />
-          )}
-          
-          {activeTab === "agents" && (
-            <AgentOverview />
-          )}
-          
-          {activeTab === "manual" && (
-            <ManualDataEntry onEntryComplete={fetchAdminStats} />
-          )}
-          
-          {activeTab === "leaderboards" && (
-            <Leaderboards />
-          )}
-          
-          {activeTab === "metrics" && (
-            <PerformanceMetrics />
-          )}
-          
-          {activeTab === "profiles" && (
-            <AgentProfile />
-          )}
-          
-          {activeTab === "users" && (
-            <UserManagement />
-          )}
+          <Card className="bg-white/95 backdrop-blur-sm">
+            <CardContent className="p-6">
+              {activeTab === "upload" && (
+                <ExcelUploader onUploadComplete={fetchAdminStats} />
+              )}
+              
+              {activeTab === "agents" && (
+                <AgentOverview />
+              )}
+              
+              {activeTab === "manual" && (
+                <ManualDataEntry onEntryComplete={fetchAdminStats} />
+              )}
+              
+              {activeTab === "leaderboards" && (
+                <Leaderboards />
+              )}
+              
+              {activeTab === "metrics" && (
+                <PerformanceMetrics />
+              )}
+              
+              {activeTab === "profiles" && (
+                <AgentProfile />
+              )}
+              
+              {activeTab === "users" && (
+                <UserManagement />
+              )}
+              
+              {activeTab === "excel" && (
+                <OnlineExcelViewer />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

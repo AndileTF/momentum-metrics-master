@@ -1,224 +1,127 @@
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Crown, Trophy, Medal, User, Phone, MessageCircle, Mail, MessageSquare, CreditCard, Users, Calendar, Loader2 } from "lucide-react";
 
-interface AgentStats {
-  Agent: string;
-  agentid: string;
-  "Total Issues handled": number;
-  "Helpdesk ticketing": number;
-  Calls: number;
-  "Live Chat": number;
-  Email: string;
-  "Support/DNS Emails": number | null;
-  "Social Tickets": number | null;
-  "Billing Tickets": number | null;
-  "Walk-Ins": number | null;
-  Date: string;
-  rank: number;
-  latestDate?: string;
-  avatar?: string;
-}
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Crown, Trophy, Medal, TrendingUp, User, Calendar, Clock } from "lucide-react";
 
 interface AgentCardProps {
-  agent: AgentStats;
+  agent: {
+    Agent: string;
+    agentid: string;
+    "Total Issues handled": number;
+    "Helpdesk ticketing": number;
+    Calls: number;
+    "Live Chat": number;
+    Email: string;
+    "Support/DNS Emails": number | null;
+    "Social Tickets": number | null;
+    "Billing Tickets": number | null;
+    "Walk-Ins": number | null;
+    Date: string;
+    rank: number;
+    latestDate?: string;
+    avatar?: string;
+  };
   rank: number;
+  timePeriod: "daily" | "weekly" | "monthly";
   className?: string;
   style?: React.CSSProperties;
-  timePeriod?: "daily" | "weekly" | "monthly";
 }
 
-export function AgentCard({ agent, rank, className = "", style, timePeriod = "daily" }: AgentCardProps) {
-  const [isFlipped, setIsFlipped] = useState(false);
+export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
   const getRankIcon = () => {
-    if (rank === 1) return <Crown className="h-6 w-6 text-champion" />;
-    if (rank === 2) return <Trophy className="h-6 w-6 text-primary" />;
-    if (rank === 3) return <Medal className="h-6 w-6 text-accent" />;
-    return null;
+    if (rank === 1) return <Crown className="h-8 w-8 text-champion" />;
+    if (rank === 2) return <Trophy className="h-8 w-8 text-primary" />;
+    if (rank === 3) return <Medal className="h-8 w-8 text-accent" />;
+    return <TrendingUp className="h-6 w-6 text-muted-foreground" />;
   };
 
-  const getRankClass = () => {
-    if (rank === 1) return "champion-glow rank-1";
-    return "rank-card";
+  const getRankBadgeColor = () => {
+    if (rank === 1) return "bg-champion text-champion-foreground";
+    if (rank === 2) return "bg-primary text-primary-foreground";
+    if (rank === 3) return "bg-accent text-accent-foreground";
+    return "bg-muted text-muted-foreground";
   };
 
   const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map(word => word.charAt(0))
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getMetricIcon = (type: string) => {
-    switch (type) {
-      case "helpdesk": return <Phone className="h-4 w-4" />;
-      case "calls": return <Phone className="h-4 w-4" />;
-      case "chat": return <MessageCircle className="h-4 w-4" />;
-      case "email": return <Mail className="h-4 w-4" />;
-      case "social": return <MessageSquare className="h-4 w-4" />;
-      case "billing": return <CreditCard className="h-4 w-4" />;
-      case "walkins": return <Users className="h-4 w-4" />;
-      default: return <User className="h-4 w-4" />;
-    }
+  const generateAvatar = (name: string) => {
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+    const initials = getInitials(name);
+    const colorIndex = name.length % colors.length;
+    const backgroundColor = colors[colorIndex];
+    
+    return `data:image/svg+xml;base64,${btoa(
+      `<svg width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+        <rect width="120" height="120" fill="${backgroundColor}"/>
+        <text x="60" y="75" font-family="Arial, sans-serif" font-size="48" font-weight="bold" 
+              text-anchor="middle" fill="white">${initials}</text>
+      </svg>`
+    )}`;
   };
 
   return (
-    <Card
-      className={`${getRankClass()} p-6 cursor-pointer transition-all duration-300 ${className}`}
-      style={style}
-      onClick={() => setIsFlipped(!isFlipped)}
-    >
-      {!isFlipped ? (
-        // Front of card
-        <div className="space-y-4">
-          {/* Rank and Crown */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {getRankIcon()}
-              <Badge 
-                variant={rank === 1 ? "default" : "outline"}
-                className={rank === 1 ? "bg-champion text-champion-foreground" : ""}
-              >
+    <Card className={`agent-card ${className}`} style={style}>
+      <CardContent className="p-6">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="flex items-center justify-center w-full">
+            <Badge className={`${getRankBadgeColor()} px-3 py-1`}>
+              <span className="flex items-center gap-1">
+                {getRankIcon()}
                 #{rank}
-              </Badge>
-            </div>
-            {rank === 1 && (
-              <div className="text-xs font-medium text-champion">
-                CHAMPION
-              </div>
-            )}
+              </span>
+            </Badge>
           </div>
-
-          {/* Avatar */}
-          <div className="flex justify-center">
-            <div className="relative">
-              <Avatar className="h-16 w-16 border-2 border-primary">
-                <AvatarImage 
-                  src={agent.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`}
-                  onLoad={() => setImageLoading(false)}
-                  onError={(e) => {
-                    setImageLoading(false);
-                    setImageError(true);
-                    console.log(`Failed to load avatar for ${agent.Agent}:`, agent.avatar);
-                    // Fallback to dicebear on error
-                    e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`;
-                  }}
-                />
-                <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold">
-                  {getInitials(agent.Agent)}
-                </AvatarFallback>
-              </Avatar>
-              {imageLoading && !imageError && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          
+          <div className="relative">
+            <Avatar className="h-24 w-24 border-4 border-primary/20">
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-full">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               )}
-            </div>
+              <AvatarImage 
+                src={imageError ? generateAvatar(agent.Agent) : agent.avatar || generateAvatar(agent.Agent)}
+                alt={agent.Agent}
+                onLoad={() => setImageLoading(false)}
+                onError={() => {
+                  setImageError(true);
+                  setImageLoading(false);
+                }}
+                className={imageLoading ? 'opacity-0' : 'opacity-100'}
+              />
+              <AvatarFallback className="text-lg font-semibold bg-primary/10">
+                <User className="h-8 w-8" />
+              </AvatarFallback>
+            </Avatar>
           </div>
 
-          {/* Agent Info */}
           <div className="text-center space-y-2">
             <h3 className="font-semibold text-lg">{agent.Agent}</h3>
-            <div className="space-y-1">
-              <p className="text-3xl font-bold text-primary">
-                {agent["Total Issues handled"]}
+            <div className="flex flex-col items-center gap-1">
+              <Badge variant="outline" className="text-xl font-bold px-4 py-2">
+                {agent["Total Issues handled"]} issues
+              </Badge>
+              <p className="text-sm text-muted-foreground">
+                {agent.Calls} calls • {agent["Live Chat"]} chats
               </p>
-              <p className="text-sm text-muted-foreground">Total Issues</p>
-              {timePeriod === "daily" && (agent.latestDate || agent.Date) && (
-                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  <span>{new Date(agent.latestDate || agent.Date).toLocaleDateString()}</span>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Hover Hint */}
-          <div className="text-center text-xs text-muted-foreground opacity-50">
-            Click to view breakdown
-          </div>
+          {timePeriod === "daily" && (agent.latestDate || agent.Date) && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>{new Date(agent.latestDate || agent.Date).toLocaleDateString()}</span>
+            </div>
+          )}
         </div>
-      ) : (
-        // Back of card - Detailed breakdown
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">{agent.Agent}</h3>
-            <Badge variant="outline">#{rank}</Badge>
-          </div>
-
-          {/* Metrics Breakdown */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {getMetricIcon("helpdesk")}
-                <span className="text-sm">Helpdesk</span>
-              </div>
-              <span className="font-semibold">{agent["Helpdesk ticketing"] || 0}</span>
-            </div>
-
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {getMetricIcon("calls")}
-                <span className="text-sm">Calls</span>
-              </div>
-              <span className="font-semibold">{agent.Calls || 0}</span>
-            </div>
-
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {getMetricIcon("chat")}
-                <span className="text-sm">Live Chat</span>
-              </div>
-              <span className="font-semibold">{agent["Live Chat"] || 0}</span>
-            </div>
-
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {getMetricIcon("email")}
-                <span className="text-sm">Support Emails</span>
-              </div>
-              <span className="font-semibold">{agent["Support/DNS Emails"] || 0}</span>
-            </div>
-
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {getMetricIcon("social")}
-                <span className="text-sm">Social</span>
-              </div>
-              <span className="font-semibold">{agent["Social Tickets"] || 0}</span>
-            </div>
-
-            <div className="flex items-center justify-between metric-badge rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {getMetricIcon("billing")}
-                <span className="text-sm">Billing</span>
-              </div>
-              <span className="font-semibold">{agent["Billing Tickets"] || 0}</span>
-            </div>
-          </div>
-
-          {/* Total */}
-          <div className="border-t border-border pt-3">
-            <div className="flex items-center justify-between text-lg font-bold">
-              <span>Total Issues</span>
-              <span className="text-primary">{agent["Total Issues handled"]}</span>
-            </div>
-          </div>
-
-          {/* Click hint */}
-          <div className="text-center text-xs text-muted-foreground opacity-50">
-            Click to go back
-          </div>
-        </div>
-      )}
+      </CardContent>
     </Card>
   );
 }
