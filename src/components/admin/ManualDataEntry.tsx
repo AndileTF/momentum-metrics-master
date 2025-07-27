@@ -75,7 +75,7 @@ export function ManualDataEntry({ onEntryComplete }: ManualDataEntryProps) {
                          formData["Billing Tickets"] + 
                          formData["Walk-Ins"];
 
-      const { error } = await supabase
+      const { error } = (await supabase
         .from("daily_stats")
         .insert({
           Agent: formData.Agent,
@@ -92,7 +92,7 @@ export function ManualDataEntry({ onEntryComplete }: ManualDataEntryProps) {
           "Total Issues handled": totalIssues,
           Group: formData.Group || null,
           "Team Lead Group": formData["Team Lead Group"] || null
-        });
+        }) as any);
 
       if (error) throw error;
 

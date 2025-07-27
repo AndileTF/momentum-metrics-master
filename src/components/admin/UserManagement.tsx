@@ -67,11 +67,11 @@ export function UserManagement() {
       setUsers(usersWithRoles);
 
       // For teams, we'll get them from Daily Stats table
-      const { data: teamData } = await supabase
-        .from("Daily Stats")
-        .select("\"Team Lead Group\"");
+      const { data: teamData } = (await supabase
+        .from("daily_stats")
+        .select("\"Team Lead Group\"") as any);
       
-      const uniqueTeams = [...new Set(teamData?.map(record => record["Team Lead Group"]) || [])];
+      const uniqueTeams = [...new Set(teamData?.map((record: any) => record["Team Lead Group"]) || [])] as string[];
       setTeams(uniqueTeams);
 
     } catch (error) {

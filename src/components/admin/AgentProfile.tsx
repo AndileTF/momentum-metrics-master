@@ -118,29 +118,37 @@ export function AgentProfile() {
 
       // Process the data
       const processedData = agentData?.map(record => {
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        const calls = Number(record.Calls) || 0;
+        const liveChat = Number(record["Live Chat"]) || 0;
+        const salesTickets = Number(record["Sales Tickets"]) || 0;
+        const supportEmails = Number(record["Support/DNS Emails"]) || 0;
+        const billingTickets = Number(record["Billing Tickets"]) || 0;
+        const socialTickets = Number(record["Social Tickets"]) || 0;
+        const walkIns = Number(record["Walk-Ins"]) || 0;
         
         return {
           ...record,
-          "Total Issues": calls + liveChat + salesTickets + supportEmails + billingTickets + socialTickets + walkIns
+          Calls: calls,
+          "Live Chat": liveChat,
+          "Sales Tickets": salesTickets,
+          "Support/DNS Emails": supportEmails,
+          "Billing Tickets": billingTickets,
+          "Social Tickets": socialTickets,
+          "Walk-Ins": walkIns,
+          "Total Issues": calls + liveChat + salesTickets + supportEmails + billingTickets + socialTickets + walkIns,
+          "Helpdesk ticketing": calls + liveChat + salesTickets + supportEmails + billingTickets + socialTickets + walkIns
         };
       }) || [];
 
       // Calculate team averages
       const teamStats = teamData?.reduce((acc, record) => {
-        const calls = record.Calls || 0;
-        const liveChat = record["Live Chat"] || 0;
-        const salesTickets = record["Sales Tickets"] || 0;
-        const supportEmails = record["Support/DNS Emails"] || 0;
-        const billingTickets = record["Billing Tickets"] || 0;
-        const socialTickets = record["Social Tickets"] || 0;
-        const walkIns = record["Walk-Ins"] || 0;
+        const calls = Number(record.Calls) || 0;
+        const liveChat = Number(record["Live Chat"]) || 0;
+        const salesTickets = Number(record["Sales Tickets"]) || 0;
+        const supportEmails = Number(record["Support/DNS Emails"]) || 0;
+        const billingTickets = Number(record["Billing Tickets"]) || 0;
+        const socialTickets = Number(record["Social Tickets"]) || 0;
+        const walkIns = Number(record["Walk-Ins"]) || 0;
         
         acc.totalIssues += calls + liveChat + salesTickets + supportEmails + billingTickets + socialTickets + walkIns;
         acc.calls += calls;
@@ -170,10 +178,10 @@ export function AgentProfile() {
         const agent = record.Agent;
         if (!agentTotals[agent]) agentTotals[agent] = 0;
         
-        const total = (record.Calls || 0) + (record["Live Chat"] || 0) + 
-                     (record["Sales Tickets"] || 0) + (record["Support/DNS Emails"] || 0) +
-                     (record["Billing Tickets"] || 0) + (record["Social Tickets"] || 0) +
-                     (record["Walk-Ins"] || 0);
+        const total = Number(record.Calls || 0) + Number(record["Live Chat"] || 0) + 
+                     Number(record["Sales Tickets"] || 0) + Number(record["Support/DNS Emails"] || 0) +
+                     Number(record["Billing Tickets"] || 0) + Number(record["Social Tickets"] || 0) +
+                     Number(record["Walk-Ins"] || 0);
         agentTotals[agent] += total;
       });
 
@@ -184,9 +192,9 @@ export function AgentProfile() {
               const rank = sortedAgents.findIndex(([agentName]) => agentName === currentAgentName) + 1;
 
       setPerformance({
-        daily: processedData.slice(0, 1),
-        weekly: processedData.slice(0, 7),
-        monthly: processedData,
+        daily: processedData.slice(0, 1) as any,
+        weekly: processedData.slice(0, 7) as any,
+        monthly: processedData as any,
         teamAverage,
         rank,
         totalAgents: sortedAgents.length

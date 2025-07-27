@@ -51,7 +51,33 @@ export function AgentOverview() {
         .order("Date", { ascending: false });
 
       if (error) throw error;
-      setAgents(data || []);
+      // Transform data to match AgentData interface by calculating missing fields
+      const transformedData = data?.map(record => {
+        const calls = Number(record.Calls) || 0;
+        const liveChat = Number(record["Live Chat"]) || 0;
+        const billingTickets = Number(record["Billing Tickets"]) || 0;
+        const salesTickets = Number(record["Sales Tickets"]) || 0;
+        const supportEmails = Number(record["Support/DNS Emails"]) || 0;
+        const socialTickets = Number(record["Social Tickets"]) || 0;
+        const walkIns = Number(record["Walk-Ins"]) || 0;
+        
+        const totalIssues = calls + liveChat + billingTickets + salesTickets + supportEmails + socialTickets + walkIns;
+        
+        return {
+          ...record,
+          Calls: calls,
+          "Live Chat": liveChat,
+          "Billing Tickets": billingTickets,
+          "Sales Tickets": salesTickets,
+          "Support/DNS Emails": supportEmails,
+          "Social Tickets": socialTickets,
+          "Walk-Ins": walkIns,
+          "Total Issues handled": totalIssues,
+          "Helpdesk ticketing": totalIssues
+        };
+      }) || [];
+      
+      setAgents(transformedData);
     } catch (error) {
       console.error("Error fetching agents:", error);
       toast({

@@ -120,14 +120,13 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
         const agentid = crypto.randomUUID();
         
         // Insert new record
-        const { error } = await supabase
+        const { error } = (await supabase
           .from("daily_stats")
           .insert({
             Agent: row.Agent,
             agentid: agentid,
             Email: row.Email || null,
             Date: row.Date,
-            "Helpdesk ticketing": row["Helpdesk ticketing"] || 0,
             Calls: row.Calls || 0,
             "Live Chat": row["Live Chat"] || 0,
             "Support/DNS Emails": row["Support/DNS Emails"] || 0,
@@ -137,7 +136,7 @@ export function ExcelUploader({ onUploadComplete }: ExcelUploaderProps) {
             "Total Issues handled": totalIssues,
             Group: row.Group || null,
             "Team Lead Group": row["Team Lead Group"] || null
-          });
+          }) as any);
 
         if (error) {
           console.error("Error inserting row:", error);
