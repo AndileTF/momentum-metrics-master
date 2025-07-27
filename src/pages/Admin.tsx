@@ -37,25 +37,27 @@ export default function Admin() {
 
   const fetchAdminStats = async () => {
     try {
-      // Get total agents
-      const { data: agents, error: agentsError } = await supabase
-        .from("csr_agent_proflie")
-        .select("agentid");
+      // Get total agents from profile table
+      const { count: agentCount } = await supabase
+        .from('profile')
+        .select('*', { count: 'exact', head: true });
 
-      if (agentsError) throw agentsError;
+      // Get total records from daily_stats table
+      const { count: recordCount } = await supabase
+        .from('daily_stats')
+        .select('*', { count: 'exact', head: true });
 
-      // Get total records and latest upload
-      const { data: records, error: recordsError } = await supabase
-        .from("daily_stats")
-        .select("Date")
-        .order("Date", { ascending: false });
-
-      if (recordsError) throw recordsError;
+      // Get latest upload date from daily_stats
+      const { data: latestData } = await supabase
+        .from('daily_stats')
+        .select('Date')
+        .order('Date', { ascending: false })
+        .limit(1);
 
       setStats({
-        totalAgents: agents?.length || 0,
-        totalRecords: records?.length || 0,
-        latestUpload: records?.[0]?.Date || null
+        totalAgents: agentCount || 0,
+        totalRecords: recordCount || 0,
+        latestUpload: latestData?.[0]?.Date || null
       });
     } catch (error) {
       console.error("Error fetching admin stats:", error);
@@ -114,7 +116,7 @@ export default function Admin() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-white/10 backdrop-blur-sm border-white/20">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -122,7 +124,7 @@ export default function Admin() {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.totalAgents}</p>
+                  <p className="text-2xl font-bold text-white">{stats.totalAgents || 0}</p>
                   <p className="text-sm text-white/70">Total Agents</p>
                 </div>
               </div>
@@ -136,7 +138,7 @@ export default function Admin() {
                   <Database className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.totalRecords}</p>
+                  <p className="text-2xl font-bold text-white">{stats.totalRecords || 0}</p>
                   <p className="text-sm text-white/70">Total Records</p>
                 </div>
               </div>
@@ -157,6 +159,26 @@ export default function Admin() {
                     }
                   </p>
                   <p className="text-sm text-white/70">Latest Upload</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-white/20">
+                  <ExternalLink className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <Button 
+                    onClick={() => window.open('/', '_blank')}
+                    variant="ghost"
+                    className="text-white hover:bg-white/20 p-0 h-auto"
+                  >
+                    View Dashboard
+                  </Button>
+                  <p className="text-sm text-white/70">Main Dashboard</p>
                 </div>
               </div>
             </CardContent>

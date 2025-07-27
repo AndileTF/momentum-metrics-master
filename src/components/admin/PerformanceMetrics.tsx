@@ -84,7 +84,7 @@ export function PerformanceMetrics() {
         .from("profile")
         .select("team_lead_name")
         .eq("email", user.email)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setCurrentUserTeam(data?.team_lead_name || "");

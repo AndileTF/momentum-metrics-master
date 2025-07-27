@@ -60,25 +60,29 @@ export function UserManagement() {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from("csr_agent_proflie")
+        .from("profile")
         .select("*")
-        .order("Agent");
+        .order("name");
 
       if (error) throw error;
 
-      // Get user roles from auth
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-      
+      // Get user roles
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('*');
+
       const usersWithRoles = data?.map(user => {
-        const authUser = authUsers?.users.find((au: any) => au.email === user.Email);
+        const userRole = userRoles?.find(ur => ur.user_id === user.agentid);
         return {
-          ...user,
-          Agent: user.Agent || "",
-          Email: user.Email || "",
-          Profile: user.Profile || "",
-          role: "Agent" as "Admin" | "Team Lead" | "Agent",
-          status: authUser ? "Active" : "Pending" as "Active" | "Inactive" | "Pending",
-          lastLogin: authUser?.last_sign_in_at || null
+          agentid: user.agentid,
+          Agent: user.name || "",
+          Email: user.email || "",
+          Profile: user.role || "",
+          role: (userRole?.role === 'admin' ? "Admin" : 
+                 userRole?.role === 'manager' ? "Team Lead" : 
+                 "Agent") as "Admin" | "Team Lead" | "Agent",
+          status: "Active" as "Active" | "Inactive" | "Pending",
+          lastLogin: null
         };
       }) || [];
 
@@ -87,8 +91,8 @@ export function UserManagement() {
       // Get teams from daily stats
       const { data: teamData } = await supabase
         .from("daily_stats")
-        .select("Team Lead Group")
-        .not("Team Lead Group", "is", null);
+        .select('"Team Lead Group"')
+        .not('"Team Lead Group"', 'is', null);
       
       const uniqueTeams = [...new Set(teamData?.map((record: any) => record["Team Lead Group"]) || [])] as string[];
       setTeams(uniqueTeams);
@@ -107,28 +111,8 @@ export function UserManagement() {
 
   const fetchPendingUsers = async () => {
     try {
-      // Get all auth users
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-      
-      // Get users who don't have roles assigned
-      const { data: userRoles } = await supabase
-        .from("user_roles")
-        .select("user_id");
-
-      const assignedUserIds = userRoles?.map(ur => ur.user_id) || [];
-      
-      const pending = authUsers?.users.filter((user: any) => 
-        !assignedUserIds.includes(user.id) && 
-        user.email_confirmed_at // Only show confirmed users
-      ).map((user: any) => ({
-        id: user.id,
-        email: user.email,
-        email_confirmed_at: user.email_confirmed_at,
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at
-      })) || [];
-
-      setPendingUsers(pending);
+      // For now, return empty array since we can't access auth.admin without special permissions
+      setPendingUsers([]);
     } catch (error) {
       console.error("Error fetching pending users:", error);
     }

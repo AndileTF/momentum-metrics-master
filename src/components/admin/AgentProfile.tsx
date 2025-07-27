@@ -58,13 +58,20 @@ export function AgentProfile() {
   const fetchAgents = async () => {
     try {
       const { data, error } = await supabase
-        .from("csr_agent_proflie")
+        .from("profile")
         .select("*")
-        .order("Agent");
+        .order("name");
 
       if (error) throw error;
 
-      setAgents(data || []);
+      const agentsData = data?.map(agent => ({
+        agentid: agent.agentid,
+        Agent: agent.name,
+        Email: agent.email,
+        Profile: agent.role
+      })) || [];
+
+      setAgents(agentsData);
     } catch (error) {
       console.error("Error fetching agents:", error);
       toast({

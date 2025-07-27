@@ -1,169 +1,197 @@
-
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ExternalLink, Globe, FileSpreadsheet, Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FileSpreadsheet, Loader2, AlertCircle, Download, Database } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import * as XLSX from 'xlsx';
 
 export function OnlineExcelViewer() {
-  const [excelUrl, setExcelUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [url, setUrl] = useState("");
+  const [data, setData] = useState<any[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleOpenExcel = () => {
-    if (!excelUrl) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid Excel URL",
-        variant: "destructive"
-      });
+  const handleLoadFile = async () => {
+    if (!url) {
+      setError("Please enter a valid URL");
       return;
     }
 
-    // Validate URL format
     try {
-      new URL(excelUrl);
-    } catch {
-      toast({
-        title: "Error",
-        description: "Please enter a valid URL",
-        variant: "destructive"
-      });
-      return;
-    }
+      setLoading(true);
+      setError("");
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch file');
+      }
 
-    setIsLoading(true);
-    
-    // Open in new tab
-    window.open(excelUrl, '_blank', 'noopener,noreferrer');
-    
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Success",
-        description: "Excel sheet opened in new tab"
-      });
-    }, 1000);
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      if (jsonData.length > 0) {
+        const firstRow = jsonData[0] as any;
+        const headerKeys = Object.keys(firstRow);
+        setHeaders(headerKeys);
+        setData(jsonData);
+        toast.success("Excel file loaded successfully");
+      } else {
+        setError("No data found in the Excel file");
+      }
+    } catch (err) {
+      console.error('Error loading file:', err);
+      setError("Failed to load Excel file. Please check the URL and try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const predefinedUrls = [
-    {
-      name: "SharePoint Excel",
-      url: "https://your-sharepoint-site.sharepoint.com/sites/your-site/Shared%20Documents/your-excel-file.xlsx",
-      description: "Main performance tracking sheet"
-    },
-    {
-      name: "Google Sheets",
-      url: "https://docs.google.com/spreadsheets/d/your-sheet-id/edit#gid=0",
-      description: "Backup data sheet"
-    },
-    {
-      name: "OneDrive Excel",
-      url: "https://onedrive.live.com/edit.aspx?your-file-id",
-      description: "Monthly reports"
+  const handleDownloadExcel = () => {
+    if (data.length === 0) return;
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, "downloaded-data.xlsx");
+    toast.success("Excel file downloaded successfully");
+  };
+
+  const handleUpdateStats = async () => {
+    if (data.length === 0) {
+      toast.error("No data to update");
+      return;
     }
-  ];
+
+    try {
+      setLoading(true);
+      
+      // Transform data to match daily_stats table structure
+      const transformedData = data.map((row: any) => ({
+        Agent: row.Agent || row.agent || row.Name || row.name,
+        Email: row.Email || row.email,
+        Date: row.Date || row.date || new Date().toISOString().split('T')[0],
+        Calls: parseInt(row.Calls || row.calls || '0'),
+        "Sales Tickets": parseInt(row["Sales Tickets"] || row.sales_tickets || '0'),
+        Group: row.Group || row.group,
+        "Billing Tickets": row["Billing Tickets"] || row.billing_tickets || '0',
+        "Walk-Ins": row["Walk-Ins"] || row.walk_ins || '0',
+        "Support/DNS Emails": row["Support/DNS Emails"] || row.support_emails || '0',
+        "Live Chat": row["Live Chat"] || row.live_chat || '0',
+        "Social Tickets": row["Social Tickets"] || row.social_tickets || '0',
+        "Team Lead Group": row["Team Lead Group"] || row.team_lead_group,
+        Profile: row.Profile || row.profile
+      }));
+
+      // Insert data into daily_stats table
+      const { error } = await supabase
+        .from('daily_stats')
+        .upsert(transformedData, { onConflict: 'Agent,Date' });
+
+      if (error) throw error;
+
+      toast.success(`Successfully updated ${transformedData.length} records`);
+    } catch (error) {
+      console.error('Error updating stats:', error);
+      toast.error('Failed to update stats in database');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Globe className="h-6 w-6 text-primary" />
-        <h2 className="text-2xl font-bold">Online Excel Viewer</h2>
-      </div>
-
-      {/* Custom URL Input */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ExternalLink className="h-5 w-5" />
-            Access Online Excel Sheet
-          </CardTitle>
+          <CardTitle>Online Excel Viewer</CardTitle>
+          <CardDescription>
+            View and manage Excel files from online sources
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="excel-url">Excel Sheet URL</Label>
+          <div className="flex gap-2">
             <Input
-              id="excel-url"
-              type="url"
-              placeholder="https://your-excel-url.com/sheet"
-              value={excelUrl}
-              onChange={(e) => setExcelUrl(e.target.value)}
-              className="w-full"
+              placeholder="Enter Excel file URL (e.g., Google Sheets, OneDrive, etc.)"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="flex-1"
             />
+            <Button onClick={handleLoadFile} disabled={loading || !url}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+              Load File
+            </Button>
           </div>
           
-          <Button 
-            onClick={handleOpenExcel}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                Opening...
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4 mr-2" />
-                Open Excel Sheet
-              </>
+          {data.length > 0 && (
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadExcel} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Download Excel
+              </Button>
+              <Button onClick={handleUpdateStats} disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Database className="h-4 w-4 mr-2" />}
+                Update Stats in Database
+              </Button>
+            </div>
+          )}
+          
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {data.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Excel Data ({data.length} rows)</CardTitle>
+            <CardDescription>
+              Data loaded from: {url}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-50">
+                    {headers.map((header, index) => (
+                      <th key={index} className="border border-gray-300 px-4 py-2 text-left font-medium">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.slice(0, 100).map((row, rowIndex) => (
+                    <tr key={rowIndex} className="hover:bg-gray-50">
+                      {headers.map((header, colIndex) => (
+                        <td key={colIndex} className="border border-gray-300 px-4 py-2">
+                          {row[header] || ''}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {data.length > 100 && (
+              <p className="mt-4 text-sm text-gray-500">
+                Showing first 100 rows of {data.length} total rows
+              </p>
             )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Predefined URLs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5" />
-            Quick Access Links
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {predefinedUrls.map((item, index) => (
-              <Card key={index} className="border-2 border-dashed border-muted hover:border-primary transition-colors">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setExcelUrl(item.url);
-                        window.open(item.url, '_blank', 'noopener,noreferrer');
-                      }}
-                      className="w-full"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Open
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>How to Use</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 text-sm">
-            <p>1. <strong>SharePoint:</strong> Copy the sharing link from your SharePoint Excel file</p>
-            <p>2. <strong>Google Sheets:</strong> Use the shareable link from Google Sheets</p>
-            <p>3. <strong>OneDrive:</strong> Copy the edit link from OneDrive</p>
-            <p>4. <strong>Custom URL:</strong> Enter any direct link to an online Excel sheet</p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
