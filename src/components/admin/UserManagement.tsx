@@ -19,13 +19,21 @@ interface User {
   Profile?: string;
   avatar?: string;
   role?: "Admin" | "Team Lead" | "Agent";
-  status?: "Active" | "Inactive";
+  status?: "Active" | "Inactive" | "Pending";
   lastLogin?: string;
+}
+
+interface AuthUser {
+  id: string;
+  email: string;
+  email_confirmed_at?: string;
+  created_at: string;
+  last_sign_in_at?: string;
 }
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
-  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
@@ -62,9 +70,12 @@ export function UserManagement() {
       const { data: authUsers } = await supabase.auth.admin.listUsers();
       
       const usersWithRoles = data?.map(user => {
-        const authUser = authUsers?.users.find(au => au.email === user.Email);
+        const authUser = authUsers?.users.find((au: any) => au.email === user.Email);
         return {
           ...user,
+          Agent: user.Agent || "",
+          Email: user.Email || "",
+          Profile: user.Profile || "",
           role: "Agent" as "Admin" | "Team Lead" | "Agent",
           status: authUser ? "Active" : "Pending" as "Active" | "Inactive" | "Pending",
           lastLogin: authUser?.last_sign_in_at || null
@@ -106,10 +117,16 @@ export function UserManagement() {
 
       const assignedUserIds = userRoles?.map(ur => ur.user_id) || [];
       
-      const pending = authUsers?.users.filter(user => 
+      const pending = authUsers?.users.filter((user: any) => 
         !assignedUserIds.includes(user.id) && 
         user.email_confirmed_at // Only show confirmed users
-      ) || [];
+      ).map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        email_confirmed_at: user.email_confirmed_at,
+        created_at: user.created_at,
+        last_sign_in_at: user.last_sign_in_at
+      })) || [];
 
       setPendingUsers(pending);
     } catch (error) {
