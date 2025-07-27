@@ -100,20 +100,24 @@ export function Dashboard() {
         }
         
         // Calculate total from specific columns only - convert to numbers first
-        const calls = parseInt(record.Calls) || 0;
-        const liveChat = parseInt(record["Live Chat"]) || 0;
-        const billingTickets = parseInt(record["Billing Tickets"]) || 0;
-        const salesTickets = parseInt(record["Sales Tickets"]) || 0;
-        const supportEmails = parseInt(record["Support/DNS Emails"]) || 0;
-        const socialTickets = parseInt(record["Social Tickets"]) || 0;
-        const walkIns = parseInt(record["Walk-Ins"]) || 0;
+        const calls = parseInt(record.Calls?.toString()) || 0;
+        const liveChat = parseInt(record["Live Chat"]?.toString()) || 0;
+        const billingTickets = parseInt(record["Billing Tickets"]?.toString()) || 0;
+        const salesTickets = parseInt(record["Sales Tickets"]?.toString()) || 0;
+        const supportEmails = parseInt(record["Support/DNS Emails"]?.toString()) || 0;
+        const socialTickets = parseInt(record["Social Tickets"]?.toString()) || 0;
+        const walkIns = parseInt(record["Walk-Ins"]?.toString()) || 0;
         
         const totalIssues = calls + liveChat + billingTickets + salesTickets + supportEmails + socialTickets + walkIns;
         
         aggregatedData[agent]["Total Issues handled"] += totalIssues;
-        aggregatedData[agent]["Helpdesk ticketing"] += record["Helpdesk ticketing"] || 0;
+        aggregatedData[agent]["Helpdesk ticketing"] += parseInt(record["Helpdesk ticketing"]?.toString()) || 0;
         aggregatedData[agent].Calls += calls;
         aggregatedData[agent]["Live Chat"] += liveChat;
+        aggregatedData[agent]["Support/DNS Emails"] = (aggregatedData[agent]["Support/DNS Emails"] || 0) + supportEmails;
+        aggregatedData[agent]["Social Tickets"] = (aggregatedData[agent]["Social Tickets"] || 0) + socialTickets;
+        aggregatedData[agent]["Billing Tickets"] = (aggregatedData[agent]["Billing Tickets"] || 0) + billingTickets;
+        aggregatedData[agent]["Walk-Ins"] = (aggregatedData[agent]["Walk-Ins"] || 0) + walkIns;
         
         // Track the latest date for this agent
         if (new Date(record.Date) > new Date(aggregatedData[agent].latestDate)) {

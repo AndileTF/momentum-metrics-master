@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Crown, Trophy, Medal, User, Phone, MessageCircle, Mail, MessageSquare, CreditCard, Users, Calendar } from "lucide-react";
+import { Crown, Trophy, Medal, User, Phone, MessageCircle, Mail, MessageSquare, CreditCard, Users, Calendar, Loader2 } from "lucide-react";
 
 interface AgentStats {
   Agent: string;
@@ -32,6 +32,8 @@ interface AgentCardProps {
 
 export function AgentCard({ agent, rank, className = "", style, timePeriod = "daily" }: AgentCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   const getRankIcon = () => {
     if (rank === 1) return <Crown className="h-6 w-6 text-champion" />;
@@ -96,19 +98,29 @@ export function AgentCard({ agent, rank, className = "", style, timePeriod = "da
 
           {/* Avatar */}
           <div className="flex justify-center">
-            <Avatar className="h-16 w-16 border-2 border-primary">
-              <AvatarImage 
-                src={agent.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`}
-                onError={(e) => {
-                  console.log(`Failed to load avatar for ${agent.Agent}:`, agent.avatar);
-                  // Fallback to dicebear on error
-                  e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`;
-                }}
-              />
-              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold">
-                {getInitials(agent.Agent)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-16 w-16 border-2 border-primary">
+                <AvatarImage 
+                  src={agent.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`}
+                  onLoad={() => setImageLoading(false)}
+                  onError={(e) => {
+                    setImageLoading(false);
+                    setImageError(true);
+                    console.log(`Failed to load avatar for ${agent.Agent}:`, agent.avatar);
+                    // Fallback to dicebear on error
+                    e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.Agent}`;
+                  }}
+                />
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold">
+                  {getInitials(agent.Agent)}
+                </AvatarFallback>
+              </Avatar>
+              {imageLoading && !imageError && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Agent Info */}
