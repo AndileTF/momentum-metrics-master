@@ -110,11 +110,7 @@ export function AvatarManagement() {
 
       if (updateError) throw updateError;
 
-      // Also update csr_agent_proflie table if it exists
-      await supabase
-        .from("csr_agent_proflie")
-        .update({ avatar: publicUrl })
-        .eq("agentid", selectedAgent);
+      // Note: csr_agent_proflie table doesn't have avatar column
 
       toast({
         title: "Success",
@@ -147,11 +143,7 @@ export function AvatarManagement() {
 
       if (updateError) throw updateError;
 
-      // Also update csr_agent_proflie table
-      await supabase
-        .from("csr_agent_proflie")
-        .update({ avatar: null })
-        .eq("agentid", agentId);
+      // Note: csr_agent_proflie table doesn't have avatar column
 
       toast({
         title: "Success",
