@@ -84,18 +84,62 @@ export function AvatarManagement() {
     try {
       setUploading(true);
 
-      const fileExt = selectedFile.name.split('.').pop();
+      // Create a canvas to compress the image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = document.createElement('img');
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(selectedFile);
+      });
+
+      // Resize image to max 400x400 to improve loading speed
+      const maxSize = 400;
+      let { width, height } = img;
+      
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      // Convert to blob with compression
+      const compressedBlob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob(resolve as BlobCallback, 'image/jpeg', 0.8);
+      });
+
+      if (!compressedBlob) {
+        throw new Error('Failed to compress image');
+      }
+
+      const fileExt = 'jpg'; // Always use jpg for compressed images
       const fileName = `${selectedAgent}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      // Upload file to Supabase Storage
+      // Upload compressed file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('agent-avatars')
-        .upload(filePath, selectedFile, {
-          upsert: true
+        .upload(filePath, compressedBlob, {
+          upsert: true,
+          contentType: 'image/jpeg'
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -108,9 +152,10 @@ export function AvatarManagement() {
         .update({ avatar: publicUrl })
         .eq("agentid", selectedAgent);
 
-      if (updateError) throw updateError;
-
-      // Note: csr_agent_proflie table doesn't have avatar column
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
 
       toast({
         title: "Success",
@@ -125,7 +170,7 @@ export function AvatarManagement() {
       console.error("Error uploading avatar:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload avatar",
+        description: error instanceof Error ? error.message : "Failed to upload avatar",
         variant: "destructive"
       });
     } finally {

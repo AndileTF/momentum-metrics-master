@@ -138,7 +138,10 @@ export function Dashboard() {
           .in("name", agentNames);
         
         profileData?.forEach((profile: any) => {
-          if (aggregatedData[profile.name]) {
+          if (aggregatedData[profile.name] && profile.avatar) {
+            // Preload images to improve performance
+            const img = new Image();
+            img.src = profile.avatar;
             aggregatedData[profile.name].avatar = profile.avatar;
           }
         });

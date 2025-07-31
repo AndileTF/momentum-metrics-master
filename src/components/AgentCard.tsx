@@ -104,17 +104,18 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
                     </div>
                   )}
                   <AvatarImage 
-                    src={imageError ? generateAvatar(agent.Agent) : agent.avatar || generateAvatar(agent.Agent)}
+                    src={agent.avatar || generateAvatar(agent.Agent)}
                     alt={agent.Agent}
+                    loading="lazy"
                     onLoad={() => setImageLoading(false)}
                     onError={() => {
                       setImageError(true);
                       setImageLoading(false);
                     }}
-                    className={imageLoading ? 'opacity-0' : 'opacity-100'}
+                    className={`${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                   />
                   <AvatarFallback className="text-lg font-semibold bg-primary/10">
-                    <User className="h-8 w-8" />
+                    {getInitials(agent.Agent)}
                   </AvatarFallback>
                 </Avatar>
               </div>
