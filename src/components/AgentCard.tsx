@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +67,20 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
     )}`;
   };
 
+  const calculateTotalIssues = () => {
+    const calls = parseInt(agent.Calls?.toString()) || 0;
+    const liveChat = parseInt(agent["Live Chat"]?.toString()) || 0;
+    const helpdeskTicketing = parseInt(agent["Helpdesk ticketing"]?.toString()) || 0;
+    const supportEmails = parseInt(agent["Support/DNS Emails"]?.toString()) || 0;
+    const billingTickets = parseInt(agent["Billing Tickets"]?.toString()) || 0;
+    const socialTickets = parseInt(agent["Social Tickets"]?.toString()) || 0;
+    const walkIns = parseInt(agent["Walk-Ins"]?.toString()) || 0;
+    
+    return calls + liveChat + helpdeskTicketing + supportEmails + billingTickets + socialTickets + walkIns;
+  };
+
+  const totalIssues = calculateTotalIssues();
+
   return (
     <Dialog open={showStats} onOpenChange={setShowStats}>
       <DialogTrigger asChild>
@@ -110,10 +123,10 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
                 <h3 className="font-semibold text-lg">{agent.Agent}</h3>
                 <div className="flex flex-col items-center gap-1">
                   <Badge variant="outline" className="text-xl font-bold px-4 py-2">
-                    {agent["Total Issues handled"]} issues
+                    {totalIssues} issues
                   </Badge>
                   <p className="text-sm text-muted-foreground">
-                    {agent.Calls} calls • {agent["Live Chat"]} chats
+                    {agent.Calls || 0} calls • {agent["Live Chat"] || 0} chats
                   </p>
                 </div>
               </div>
@@ -148,7 +161,7 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
                 <div className="flex items-center justify-center mb-2">
                   <Phone className="h-8 w-8 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold">{agent.Calls}</div>
+                <div className="text-2xl font-bold">{agent.Calls || 0}</div>
                 <div className="text-sm text-muted-foreground">Calls</div>
               </CardContent>
             </Card>
@@ -158,7 +171,7 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
                 <div className="flex items-center justify-center mb-2">
                   <MessageSquare className="h-8 w-8 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold">{agent["Live Chat"]}</div>
+                <div className="text-2xl font-bold">{agent["Live Chat"] || 0}</div>
                 <div className="text-sm text-muted-foreground">Live Chat</div>
               </CardContent>
             </Card>
@@ -194,12 +207,12 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
                 <div className="flex justify-between items-center">
                   <span>Total Issues Handled:</span>
                   <Badge variant="default" className="text-lg px-3 py-1">
-                    {agent["Total Issues handled"]}
+                    {totalIssues}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Helpdesk Ticketing:</span>
-                  <Badge variant="secondary">{agent["Helpdesk ticketing"]}</Badge>
+                  <Badge variant="secondary">{agent["Helpdesk ticketing"] || 0}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Current Rank:</span>
