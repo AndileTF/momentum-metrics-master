@@ -14,13 +14,13 @@ interface AgentStats {
   Agent: string;
   agentid: string;
   "Total Issues handled": number;
+  "Helpdesk ticketing": number;
   Calls: number;
   "Live Chat": number;
   Email: string;
   "Support/DNS Emails": number | null;
   "Social Tickets": number | null;
   "Billing Tickets": number | null;
-  "Sales Tickets": number | null;
   "Walk-Ins": number | null;
   Date: string;
   rank: number;
@@ -91,13 +91,9 @@ export function Dashboard() {
           aggregatedData[agent] = {
             ...record,
             "Total Issues handled": 0,
+            "Helpdesk ticketing": 0,
             Calls: 0,
             "Live Chat": 0,
-            "Sales Tickets": 0,
-            "Support/DNS Emails": 0,
-            "Social Tickets": 0,
-            "Billing Tickets": 0,
-            "Walk-Ins": 0,
             latestDate: record.Date,
             avatar: undefined, // Will be fetched separately
           };
@@ -115,9 +111,9 @@ export function Dashboard() {
         const totalIssues = calls + liveChat + billingTickets + salesTickets + supportEmails + socialTickets + walkIns;
         
         aggregatedData[agent]["Total Issues handled"] += totalIssues;
+        aggregatedData[agent]["Helpdesk ticketing"] += parseInt(record["Helpdesk ticketing"]?.toString()) || 0;
         aggregatedData[agent].Calls += calls;
         aggregatedData[agent]["Live Chat"] += liveChat;
-        aggregatedData[agent]["Sales Tickets"] = (aggregatedData[agent]["Sales Tickets"] || 0) + salesTickets;
         aggregatedData[agent]["Support/DNS Emails"] = (aggregatedData[agent]["Support/DNS Emails"] || 0) + supportEmails;
         aggregatedData[agent]["Social Tickets"] = (aggregatedData[agent]["Social Tickets"] || 0) + socialTickets;
         aggregatedData[agent]["Billing Tickets"] = (aggregatedData[agent]["Billing Tickets"] || 0) + billingTickets;
@@ -138,10 +134,7 @@ export function Dashboard() {
           .in("name", agentNames);
         
         profileData?.forEach((profile: any) => {
-          if (aggregatedData[profile.name] && profile.avatar) {
-            // Preload images to improve performance
-            const img = new Image();
-            img.src = profile.avatar;
+          if (aggregatedData[profile.name]) {
             aggregatedData[profile.name].avatar = profile.avatar;
           }
         });

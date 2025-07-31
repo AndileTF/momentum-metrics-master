@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import { PerformanceMetrics } from "@/components/admin/PerformanceMetrics";
 import { AgentProfile } from "@/components/admin/AgentProfile";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { OnlineExcelViewer } from "@/components/admin/OnlineExcelViewer";
-import { AvatarManagement } from "@/components/admin/AvatarManagement";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminStats {
@@ -22,7 +22,7 @@ interface AdminStats {
 }
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState<"upload" | "agents" | "manual" | "leaderboards" | "metrics" | "profiles" | "users" | "excel" | "avatars">("upload");
+  const [activeTab, setActiveTab] = useState<"upload" | "agents" | "manual" | "leaderboards" | "metrics" | "profiles" | "users" | "excel">("upload");
   const [stats, setStats] = useState<AdminStats>({
     totalAgents: 0,
     totalRecords: 0,
@@ -79,8 +79,7 @@ export default function Admin() {
     { id: "metrics", label: "Performance Metrics", icon: Database },
     { id: "profiles", label: "Agent Profiles", icon: Users },
     { id: "users", label: "User Management", icon: Users },
-    { id: "excel", label: "Online Excel", icon: ExternalLink },
-    { id: "avatars", label: "Avatar Management", icon: Upload }
+    { id: "excel", label: "Online Excel", icon: ExternalLink }
   ];
 
   if (loading) {
@@ -241,10 +240,6 @@ export default function Admin() {
               
               {activeTab === "excel" && (
                 <OnlineExcelViewer />
-              )}
-              
-              {activeTab === "avatars" && (
-                <AvatarManagement />
               )}
             </CardContent>
           </Card>
