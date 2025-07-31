@@ -10,13 +10,13 @@ interface AgentCardProps {
     Agent: string;
     agentid: string;
     "Total Issues handled": number;
-    "Helpdesk ticketing": number;
     Calls: number;
     "Live Chat": number;
     Email: string;
     "Support/DNS Emails": number | null;
     "Social Tickets": number | null;
     "Billing Tickets": number | null;
+    "Sales Tickets": number | null;
     "Walk-Ins": number | null;
     Date: string;
     rank: number;
@@ -70,13 +70,13 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
   const calculateTotalIssues = () => {
     const calls = parseInt(agent.Calls?.toString()) || 0;
     const liveChat = parseInt(agent["Live Chat"]?.toString()) || 0;
-    const helpdeskTicketing = parseInt(agent["Helpdesk ticketing"]?.toString()) || 0;
     const supportEmails = parseInt(agent["Support/DNS Emails"]?.toString()) || 0;
     const billingTickets = parseInt(agent["Billing Tickets"]?.toString()) || 0;
+    const salesTickets = parseInt(agent["Sales Tickets"]?.toString()) || 0;
     const socialTickets = parseInt(agent["Social Tickets"]?.toString()) || 0;
     const walkIns = parseInt(agent["Walk-Ins"]?.toString()) || 0;
     
-    return calls + liveChat + helpdeskTicketing + supportEmails + billingTickets + socialTickets + walkIns;
+    return calls + liveChat + supportEmails + billingTickets + salesTickets + socialTickets + walkIns;
   };
 
   const totalIssues = calculateTotalIssues();
@@ -211,8 +211,8 @@ export function AgentCard({ agent, rank, timePeriod, className, style }: AgentCa
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>Helpdesk Ticketing:</span>
-                  <Badge variant="secondary">{agent["Helpdesk ticketing"] || 0}</Badge>
+                  <span>Sales Tickets:</span>
+                  <Badge variant="secondary">{agent["Sales Tickets"] || 0}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Current Rank:</span>
