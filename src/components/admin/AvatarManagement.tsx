@@ -84,7 +84,7 @@ export function AvatarManagement() {
     try {
       setUploading(true);
 
-      // Create a canvas to compress the image and convert to base64
+      // Create a canvas to compress the image
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = document.createElement('img');
@@ -95,8 +95,8 @@ export function AvatarManagement() {
         img.src = URL.createObjectURL(selectedFile);
       });
 
-      // Resize image to max 200x200 to keep data size reasonable
-      const maxSize = 200;
+      // Resize image to max 400x400 to improve loading speed
+      const maxSize = 400;
       let { width, height } = img;
       
       if (width > height) {
@@ -115,13 +115,41 @@ export function AvatarManagement() {
       canvas.height = height;
       ctx?.drawImage(img, 0, 0, width, height);
 
-      // Convert to base64 data URL with compression
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      // Convert to blob with compression
+      const compressedBlob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob(resolve as BlobCallback, 'image/jpeg', 0.8);
+      });
 
-      // Update agent profile with base64 avatar data
+      if (!compressedBlob) {
+        throw new Error('Failed to compress image');
+      }
+
+      const fileExt = 'jpg'; // Always use jpg for compressed images
+      const fileName = `${selectedAgent}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload compressed file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('agent-avatars')
+        .upload(filePath, compressedBlob, {
+          upsert: true,
+          contentType: 'image/jpeg'
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('agent-avatars')
+        .getPublicUrl(filePath);
+
+      // Update agent profile with avatar URL
       const { error: updateError } = await supabase
         .from("profile")
-        .update({ avatar: dataUrl })
+        .update({ avatar: publicUrl })
         .eq("agentid", selectedAgent);
 
       if (updateError) {
