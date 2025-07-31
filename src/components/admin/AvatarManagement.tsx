@@ -128,9 +128,9 @@ export function AvatarManagement() {
       const fileName = `${selectedAgent}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      // Upload compressed file to Supabase Storage
+      // Upload compressed file to Supabase Storage using public bucket
       const { error: uploadError } = await supabase.storage
-        .from('agent-avatars')
+        .from('public-avatars')
         .upload(filePath, compressedBlob, {
           upsert: true,
           contentType: 'image/jpeg'
@@ -141,9 +141,9 @@ export function AvatarManagement() {
         throw uploadError;
       }
 
-      // Get public URL
+      // Get public URL from the correct bucket
       const { data: { publicUrl } } = supabase.storage
-        .from('agent-avatars')
+        .from('public-avatars')
         .getPublicUrl(filePath);
 
       // Update agent profile with avatar URL
