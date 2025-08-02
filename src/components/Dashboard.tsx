@@ -130,20 +130,20 @@ export function Dashboard() {
         }
       });
 
-      // Fetch agent avatars from profile table
+      // Fetch agent avatars from csr_agent_proflie table
       const agentNames = Object.keys(aggregatedData);
       if (agentNames.length > 0) {
         const { data: profileData } = await supabase
-          .from("profile")
-          .select("name, avatar")
-          .in("name", agentNames);
+          .from("csr_agent_proflie")
+          .select("Agent, Profile")
+          .in("Agent", agentNames);
         
         profileData?.forEach((profile: any) => {
-          if (aggregatedData[profile.name] && profile.avatar) {
+          if (aggregatedData[profile.Agent] && profile.Profile) {
             // Preload images to improve performance
             const img = new Image();
-            img.src = profile.avatar;
-            aggregatedData[profile.name].avatar = profile.avatar;
+            img.src = profile.Profile;
+            aggregatedData[profile.Agent].avatar = profile.Profile;
           }
         });
       }
