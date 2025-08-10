@@ -1,0 +1,14 @@
+node_modules
+.dist
+/build
+/dist
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+*.log
+npm-debug.log*
+.vscode
+.tmp
+.swp
+.DS_Store
