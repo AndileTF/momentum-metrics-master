@@ -91,8 +91,8 @@ export function OnlineExcelViewer() {
 
       // Insert data into daily_stats table
       const { error } = await supabase
-        .from('daily_stats')
-        .upsert(transformedData, { onConflict: 'Agent,Date' });
+        .from('daily_stats' as any)
+        .upsert(transformedData as any, { onConflict: 'Agent,Date' as any });
 
       if (error) throw error;
 
