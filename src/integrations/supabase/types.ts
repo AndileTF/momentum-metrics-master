@@ -575,6 +575,23 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_public_daily_stats: {
+        Args: { _start_date: string }
+        Returns: {
+          agentid: string
+          Agent: string
+          Email: string
+          Date: string
+          Calls: number
+          "Live Chat": number
+          "Billing Tickets": number
+          "Sales Tickets": number
+          "Support/DNS Emails": number
+          "Social Tickets": number
+          "Walk-Ins": number
+          avatar: string
+        }[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]

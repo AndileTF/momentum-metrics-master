@@ -72,21 +72,36 @@ export function Dashboard() {
           break;
       }
 
-      // Fetch daily stats first
-      const { data, error } = await supabase
-        .from("daily_stats")
-        .select("*")
-        .gte("Date", startDate.toISOString().split('T')[0]);
+      // Fetch public-safe stats via RPC (works without auth)
+      const start = startDate.toISOString().split('T')[0];
+      const { data: rows, error } = await supabase
+        .rpc('get_public_daily_stats', { _start_date: start });
 
       if (error) {
-        console.error("Error fetching agent stats:", error);
+        console.error('Error fetching public daily stats:', error);
         return;
       }
+
+      // Normalize keys to match existing aggregator expectations
+      const normalized = (rows || []).map((r: any) => ({
+        Agent: r["Agent"],
+        agentid: r.agentid,
+        Email: r["Email"],
+        Date: r["Date"],
+        Calls: r["Calls"],
+        "Live Chat": r["Live Chat"],
+        "Billing Tickets": r["Billing Tickets"],
+        "Sales Tickets": r["Sales Tickets"],
+        "Support/DNS Emails": r["Support/DNS Emails"],
+        "Social Tickets": r["Social Tickets"],
+        "Walk-Ins": r["Walk-Ins"],
+        avatar: r.avatar,
+      }));
 
       // Aggregate data by agent for weekly/monthly views
       const aggregatedData: Record<string, Omit<AgentStats, 'rank'> & { latestDate: string; avatar?: string }> = {};
       
-      data?.forEach((record: any) => {
+      normalized.forEach((record: any) => {
         const agent = record.Agent;
         if (!aggregatedData[agent]) {
           aggregatedData[agent] = {
@@ -100,7 +115,7 @@ export function Dashboard() {
             "Billing Tickets": 0,
             "Walk-Ins": 0,
             latestDate: record.Date,
-            avatar: undefined, // Will be fetched separately
+            avatar: record.avatar,
           };
         }
         
@@ -130,23 +145,8 @@ export function Dashboard() {
         }
       });
 
-      // Fetch agent avatars from csr_agent_proflie table
-      const agentNames = Object.keys(aggregatedData);
-      if (agentNames.length > 0) {
-        const { data: profileData } = await supabase
-          .from("csr_agent_proflie")
-          .select("Agent, Profile")
-          .in("Agent", agentNames);
-        
-        profileData?.forEach((profile: any) => {
-          if (aggregatedData[profile.Agent] && profile.Profile) {
-            // Preload images to improve performance
-            const img = new Image();
-            img.src = profile.Profile;
-            aggregatedData[profile.Agent].avatar = profile.Profile;
-          }
-        });
-      }
+      // Avatars already included via RPC (profile.avatar or csr_agent_proflie.Profile). Skip extra queries without auth.
+
 
       // Convert to array and sort by total issues
       const sortedAgents = Object.values(aggregatedData)
