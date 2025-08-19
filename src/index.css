@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Liquid Technologies Theme - Magenta Focus */
-    --background: 325 87% 45%;
+    --background: 216 50% 12%;
     --foreground: 0 0% 98%;
 
     --card: 240 25% 10%;
@@ -118,8 +118,7 @@ All colors MUST be HSL.
   }
 
   body {
-    background: hsl(216 50% 12%);
-    color: hsl(0 0% 98%);
+    @apply bg-background text-foreground;
     min-height: 100vh;
   }
 }
