@@ -207,30 +207,30 @@ export function Dashboard() {
         </div>
       </div>;
   }
-  return <div className="min-h-screen p-6 bg-white">
+  return <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Logo and Title Side by Side */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-4">
             <img src="/lovable-uploads/076cdbc1-71db-4395-8d53-3018b3b7e27d.png" alt="Liquid Intelligent Technologies" className="h-16 w-auto" />
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-bold text-foreground">
                 MOMENTUM
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Agent Performance Leaderboard
               </p>
             </div>
           </div>
           <div className="flex-1" />
           <div className="text-right space-y-1">
-            <p className="text-xl font-semibold text-gray-900">
+            <p className="text-xl font-semibold text-foreground">
               {getPeriodLabel(timePeriod)}
             </p>
-            <p className="text-sm text-gray-950">
+            <p className="text-sm text-muted-foreground">
               {getDateRange(timePeriod)}
             </p>
-            {autoRotate && <Badge variant="outline" className="text-xs bg-slate-900">
+            {autoRotate && <Badge variant="outline" className="text-xs">
                 Auto-rotating every 10 seconds
               </Badge>}
           </div>
@@ -252,7 +252,7 @@ export function Dashboard() {
 
           <div className="flex items-center gap-4">
             <RefreshIndicator refreshing={refreshing} lastRefresh={lastRefresh} />
-            <Badge variant="outline" className="flex items-center gap-2 bg-slate-900">
+            <Badge variant="outline" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               {agents.length} Agents
             </Badge>
@@ -285,7 +285,7 @@ export function Dashboard() {
 
         {/* Leaderboard */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+          <h2 className="text-2xl font-bold text-center flex items-center justify-center gap-2 text-foreground">
             <Trophy className="h-6 w-6 text-primary" />
             Top Performers
           </h2>
