@@ -183,6 +183,26 @@ export function Dashboard() {
     }
   };
 
+  const getDateRange = (period: TimePeriod) => {
+    const now = new Date();
+    const formatDate = (date: Date) => date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: period === 'monthly' ? 'numeric' : undefined
+    });
+
+    switch (period) {
+      case "daily":
+        return formatDate(now);
+      case "weekly":
+        const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return `${formatDate(weekStart)} - ${formatDate(now)}`;
+      case "monthly":
+        const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return `${formatDate(monthStart)} - ${formatDate(now)}`;
+    }
+  };
+
   const getStatsIcon = (rank: number) => {
     if (rank === 1) return <Crown className="h-6 w-6 text-champion" />;
     if (rank === 2) return <Trophy className="h-6 w-6 text-primary" />;
@@ -202,23 +222,32 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-white">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header with Liquid Logo */}
-        <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-4">
+        {/* Header with Logo and Title Side by Side */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <img 
               src="/lovable-uploads/076cdbc1-71db-4395-8d53-3018b3b7e27d.png" 
               alt="Liquid Intelligent Technologies" 
               className="h-16 w-auto"
             />
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">
+                MOMENTUM
+              </h1>
+              <p className="text-lg text-gray-600">
+                Agent Performance Leaderboard
+              </p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <h1 className="text-5xl font-bold bg-gradient-liquid bg-clip-text text-transparent">
-              MOMENTUM
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Agent Performance Leaderboard • {getPeriodLabel(timePeriod)}
+          <div className="flex-1" />
+          <div className="text-right space-y-1">
+            <p className="text-xl font-semibold text-gray-900">
+              {getPeriodLabel(timePeriod)}
+            </p>
+            <p className="text-sm text-gray-600">
+              {getDateRange(timePeriod)}
             </p>
             {autoRotate && (
               <Badge variant="outline" className="text-xs">

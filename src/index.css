@@ -118,8 +118,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
-    background: var(--gradient-background);
+    @apply bg-white text-gray-900;
     min-height: 100vh;
   }
 }
