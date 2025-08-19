@@ -14,7 +14,7 @@ export function RefreshIndicator({
       minute: '2-digit'
     });
   };
-  return <Badge variant="outline" className="flex items-center gap-2 bg-fuchsia-900">
+  return <Badge variant="outline" className="flex items-center gap-2 bg-slate-900">
       <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
       {refreshing ? "Refreshing..." : `Updated ${formatTime(lastRefresh)}`}
     </Badge>;

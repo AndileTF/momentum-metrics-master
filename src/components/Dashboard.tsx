@@ -224,13 +224,13 @@ export function Dashboard() {
           </div>
           <div className="flex-1" />
           <div className="text-right space-y-1">
-            <p className="text-xl font-semibold text-fuchsia-900">
+            <p className="text-xl font-semibold text-foreground">
               {getPeriodLabel(timePeriod)}
             </p>
-            <p className="text-sm text-fuchsia-900">
+            <p className="text-sm text-muted-foreground">
               {getDateRange(timePeriod)}
             </p>
-            {autoRotate && <Badge variant="outline" className="text-xs bg-fuchsia-950">
+            {autoRotate && <Badge variant="outline" className="text-xs">
                 Auto-rotating every 10 seconds
               </Badge>}
           </div>
@@ -252,7 +252,7 @@ export function Dashboard() {
 
           <div className="flex items-center gap-4">
             <RefreshIndicator refreshing={refreshing} lastRefresh={lastRefresh} />
-            <Badge variant="outline" className="flex items-center gap-2 bg-fuchsia-800">
+            <Badge variant="outline" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               {agents.length} Agents
             </Badge>
