@@ -118,7 +118,7 @@ All colors MUST be HSL.
   }
 
   body {
-    background: hsl(216 28% 7%);
+    background: hsl(216 50% 12%);
     color: hsl(0 0% 98%);
     min-height: 100vh;
   }
